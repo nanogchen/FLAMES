@@ -1,5 +1,7 @@
 # FLAMES—Fast, Low-storage, Accurate,  and Memory-Efficient adaptive Sampling—Approach to Resolve Spatially Dependent Dynamics of Molecular Liquids
 
+<img src="flames.jpg" alt="drawing" width="800"/>
+
 ## Prerequisites
 Main packages used:
 - [MDAnalysis](https://www.mdanalysis.org/) file IO (tested v2.4.3)
