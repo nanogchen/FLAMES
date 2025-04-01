@@ -1,6 +1,14 @@
 # FLAMES—Fast, Low-storage, Accurate,  and Memory-Efficient adaptive Sampling—Approach to Resolve Spatially Dependent Dynamics of Molecular Liquids
 
-<img src="flames.jpg" alt="drawing" width="800"/>
+<p align="center" width="100%">
+    <img width="50%" src="flames.jpg">
+</p>
+
+Types of work can be done:
+- calculation of structure factors that can also be obtained by experiments (e.g., SAXS/SANS)
+- calculation of the partial structure factors that can be used to study critical phenomena
+- calculation of the intermediate scattering function (ISF) and g1/g2 correlation function that can be probed by x-ray photon correlation spectroscopy (XPCS)
+- calculation of the two-time correlation function c2 for nonequilibrium molecular dynamics
 
 ## Prerequisites
 Main packages used:
