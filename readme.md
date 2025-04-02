@@ -1,7 +1,7 @@
 # FLAMES—Fast, Low-storage, Accurate,  and Memory-Efficient adaptive Sampling—Approach to Resolve Spatially Dependent Dynamics of Molecular Liquids
 
 <p align="center" width="100%">
-    <img width="50%" src="flames.jpg">
+    <img width="60%" src="flames.jpg">
 </p>
 
 Types of work can be done:
