@@ -22,7 +22,7 @@ import numba
 from datetime import datetime
 from scipy.signal import correlate
 
-from dynasor_mod import get_rho_q, get_q_points_all_quads, get_binning_averages
+from q_gen import get_rho_q, get_q_points_all_quads, get_binning_averages
 from flames import get_static_sf, order_q_points, get_ISF_corr
 
 # -----------------------------------------------------------------------------

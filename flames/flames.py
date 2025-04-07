@@ -22,7 +22,7 @@ import numba
 from datetime import datetime
 from scipy.signal import correlate
 
-from dynasor_mod import get_rho_q, get_q_points_all_quads, get_binning_averages
+from q_gen import get_rho_q, get_q_points_all_quads, get_binning_averages
 
 def get_static_sf(q_points, system, traj, formfact_all):
 

@@ -14,11 +14,46 @@
 # GNU General Public License for more details.
 #
 
-"""from dynasor, with some modification"""
-
 import itertools
 import numpy as np
 from numba import njit, prange
+
+def get_q_points_slab(box, q_max, normal='y'):
+	"""
+	construct q-points in a slab: xz with norm-y
+	or xy with norm z
+	"""
+
+	if normal == 'y':
+		idx_list = [0,2]
+
+	elif normal == 'z':
+		idx_list = [0,1]
+
+	elif normal == 'x':
+		idx_list = [1,2]
+
+	else:
+		print(f"Not allowed value of normal ({normal})! Can ONLY be x/y/z")
+		sys.exit(0)
+
+	box2 = box[idx_list]
+	dq = np.diagflat(2*np.pi/box2)
+	N = np.ceil(q_max/np.diag(dq)).astype(int)
+
+	# form the q-points in each of the two direction
+	q1 = np.arange(-N[0], N[0]+1) * dq[0,0] # 2*N+1
+	q2 = np.arange(-N[1], N[1]+1) * dq[1,1]
+
+	# the q-points
+	qpts1, qpts2 = np.meshgrid(q1, q2)
+	q_points2 = np.stack((qpts1.ravel(), qpts2.ravel()), axis=-1)
+	q_points = np.zeros((q_points2.shape[0], 3))
+	q_points[:, idx_list] = q_points2
+
+	return q_points
+
+"""from dynasor, with some modification"""
 
 @njit(fastmath=True, nogil=True)
 def dot3(a,b):
@@ -49,7 +84,7 @@ def get_rho_q(x, q, formfact_all):
 	return rho_q
 
 def get_prune_distance(max_points, q_max, q_vol):
-	"""dynasor"""
+	"""from dynasor: originally just first-quadrant"""
 	Q = q_max
 	V = q_vol
 	N = max_points
