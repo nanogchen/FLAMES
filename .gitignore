@@ -1,0 +1,5 @@
+./data/.sampling_100frames_100ns.xtc_offsets.lock
+./data/.sampling_100frames_100ns.xtc_offsets.npz
+
+./flames/__pycache__/
+./flames/*.npy
