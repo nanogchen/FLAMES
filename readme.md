@@ -4,11 +4,13 @@
     <img width="60%" src="flames.jpg">
 </p>
 
-Types of work can be done:
+Types of work can be done*:
 - calculation of structure factors that can also be obtained by experiments (e.g., SAXS/SANS)
 - calculation of the partial structure factors that can be used to study critical phenomena
 - calculation of the intermediate scattering function (ISF) and g1/g2 correlation function that can be probed by x-ray photon correlation spectroscopy (XPCS)
 - calculation of the two-time correlation function c2 for nonequilibrium molecular dynamics
+  
+*Not all added yet. Will keep updating once new research is published.
 
 ## Prerequisites
 Main packages used:
