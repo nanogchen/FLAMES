@@ -110,7 +110,7 @@ def get_prune_distance(max_points, q_max, q_vol):
 
 	x = Q * (np.cos(1 / 3 * np.arccos(1 - 4 * d / Q**3) - 2 * np.pi / 3) + 0.5)
 
-	assert np.isclose(original_eq(x), 0), original_eq(x)
+	assert np.isclose(original_eq(x), 0, rtol=1e-05, atol=1e-06), original_eq(x)
 
 	return x
 

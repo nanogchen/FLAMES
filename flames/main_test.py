@@ -23,7 +23,7 @@ from datetime import datetime
 from scipy.signal import correlate
 
 from q_gen import get_rho_q, get_q_points_all_quads, get_binning_averages
-from flames import get_static_sf, order_q_points, get_ISF_corr
+from cal import get_static_sf, order_q_points, get_ISF_corr
 
 # -----------------------------------------------------------------------------
 
