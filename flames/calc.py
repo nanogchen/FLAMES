@@ -75,6 +75,62 @@ def get_sf_decomposition(q_points, ag1, ag2, traj):
 	Natoms = ag1.atoms.n_atoms + ag2.atoms.n_atoms
 	return sf_AA/Natoms, 0.5*sf_AB/Natoms, sf_BB/Natoms
 
+def get_scattering_image(box, q_max, system, traj, plane='xz'):
+	"""
+	construct q-points in a plane
+	"""
+
+	if plane == 'xz':
+		idx_list = [0,2]
+		xlabel = 'x'
+		ylabel = 'z'
+
+	elif plane == 'xy':
+		idx_list = [0,1]
+		xlabel = 'x'
+		ylabel = 'y'
+
+	elif plane == 'yz':
+		# just for completeness, may not be used
+		idx_list = [1,2]
+		xlabel = 'y'
+		ylabel = 'z'
+
+	else:
+		print(f"Not allowed value of plane ({plane})! Can ONLY be xy/yz/xz")
+		sys.exit(0)
+
+	box2 = box[idx_list]
+	dq = np.diagflat(2*np.pi/box2)
+	N = np.ceil(q_max/np.diag(dq)).astype(int)
+
+	# form the q-points in each of the two direction
+	q1 = np.arange(-N[0], N[0]+1) * dq[0,0] # 2*N+1
+	q2 = np.arange(-N[1], N[1]+1) * dq[1,1]
+
+	# the q-points
+	qpts1, qpts2 = np.meshgrid(q1, q2)
+	q_points2 = np.stack((qpts1.ravel(), qpts2.ravel()), axis=-1)
+	q_points = np.zeros((q_points2.shape[0], 3))
+	q_points[:, idx_list] = q_points2
+
+	# out array
+	ssf_1d = np.zeros((len(q_points), len(traj)))
+	ssf_2d = np.zeros((q1.shape[0], q2.shape[0], len(traj)))
+
+	ifr=0    
+	for _ in traj:
+
+		coords = system.positions
+	
+		# cal sf. at each q-points
+		rho_q = get_rho_q_noFF(coords, q_points)
+		ssf = np.real(rho_q*rho_q.conjugate()) / coords.shape[0] # 1/N
+		ssf_1d[:, ifr] = ssf
+		ssf_2d[:, :, ifr] = np.reshape(ssf, (q1.shape[0], q2.shape[0]))
+
+	return q_points, ssf_1d, q1, q2, ssf_2d
+
 def get_ISF_corr(q_points, system, traj, formfact_all):
 
 	"""
