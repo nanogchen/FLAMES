@@ -26,7 +26,7 @@ Packages used with modification (no need to install):
 Set the control parameters and run the script under the environment with above packages:
 > cd tests/
 > 
-> python main_test.py
+> python jctc25_test.py
 
 Note that the current test is on the Gromacs xtc trajectory (e.g., time and length unit in ps and nm). For other types of trajectories, especially saved in LJ units, the unit conversion must be done correctly!
 
