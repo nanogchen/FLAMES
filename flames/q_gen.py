@@ -83,6 +83,30 @@ def get_rho_q(x, q, formfact_all):
 
 	return rho_q
 
+@njit(fastmath=True, nogil=True, parallel=True)
+def get_rho_q_noFF(x, q):
+
+	"""
+	get rho of q over all q-points w/o form factor
+	"""
+
+	Nx = len(x)
+	Nq = len(q)
+
+	rho_q = np.zeros(Nq, dtype=np.complex128)
+
+	# prange is like OMP
+	for iq in prange(Nq):
+
+		rho = 0.0j
+		for ix in range(Nx):
+			alpha = dot3(x[ix], q[iq])
+			rho += np.exp(-1j * alpha)
+
+		rho_q[iq] = rho
+
+	return rho_q
+
 def get_prune_distance(max_points, q_max, q_vol):
 	"""from dynasor: originally just first-quadrant"""
 	Q = q_max

@@ -24,7 +24,7 @@ from scipy.signal import correlate
 
 import sys
 sys.path.insert(0, "/home/softmatter/flames/flames")
-from q_gen import get_rho_q, get_q_points_all_quads, get_binning_averages
+from q_gen import get_rho_q, get_rho_q_noFF, get_q_points_all_quads, get_binning_averages
 
 def get_static_sf(q_points, system, traj, formfact_all):
 
@@ -45,6 +45,35 @@ def get_static_sf(q_points, system, traj, formfact_all):
 		ifr+=1
 
 	return ssf/(np.sum(formfact_all**2))
+
+def get_sf_decomposition(q_points, ag1, ag2, traj):
+	"""
+	get decomposition of the static structure factor
+	note: no manual-set form factor is used here!
+	"""
+
+	n_qpoints = len(q_points)
+	sf_AA = np.zeros((n_qpoints, len(traj)))
+	sf_AB = np.zeros((n_qpoints, len(traj)))
+	sf_BB = np.zeros((n_qpoints, len(traj)))    
+
+	ifr=0
+	for _ in traj:
+
+		coords_A = ag1.positions
+		coords_B = ag2.positions
+
+		rho_qA = get_rho_q_noFF(coords_A, q_points)
+		rho_qB = get_rho_q_noFF(coords_B, q_points)
+
+		sf_AA[:,ifr] = np.real(rho_qA*rho_qA.conjugate())
+		sf_BB[:,ifr] = np.real(rho_qB*rho_qB.conjugate())
+		sf_AB[:,ifr] = np.real(rho_qA*rho_qB.conjugate())+np.real(rho_qB*rho_qA.conjugate()) # considered two
+
+		ifr+=1
+
+	Natoms = ag1.atoms.n_atoms + ag2.atoms.n_atoms
+	return sf_AA/Natoms, 0.5*sf_AB/Natoms, sf_BB/Natoms
 
 def get_ISF_corr(q_points, system, traj, formfact_all):
 
