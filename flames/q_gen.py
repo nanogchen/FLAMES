@@ -225,3 +225,36 @@ def get_binning_averages(num_q_bins, q_end, data_in_q_t, q_points):
 
 	return q_bincenters, averaged_data
 
+def get_binning_averages_ttc(q_points, ssf, I_q_t1_t2, form="G"):
+	""" get function of q_norm by binning for two-time correlation"""
+	Nframes = I_q_t1_t2.shape[1]
+
+	# 1 q-bin (either along x or y or z)
+	averaged_c2 = np.zeros((1, Nframes, Nframes))
+	q_bincenters = np.mean(np.linalg.norm(q_points, axis=1))
+
+	if form == "G": #  = (<I1*I2> - <I1>*<I2>) / (sigma(I1)*sigma(I2)); G=C-1
+
+		for i in range(Nframes):
+			for j in range(i, Nframes):
+
+				nominator = np.mean(I_q_t1_t2[:, i, j],axis=0) - (np.mean(ssf[:, i],axis=0)) * (np.mean(ssf[:, j], axis=0))
+				denominator = np.std(ssf[:, i], axis=0) * np.std(ssf[:, j], axis=0) 
+
+				averaged_c2[0, i, j] = nominator / denominator
+				averaged_c2[0, j, i] = averaged_c2[0, i, j]
+
+	elif form == "C": #  = <I1*I2> / (<I1>*<I2>)
+
+		for i in range(Nframes):
+			for j in range(i, Nframes):
+
+				nominator = I_q_t1_t2[:, i, j].mean(axis=0)
+				denominator = (np.mean(ssf[:, i],axis=0)) * (np.mean(ssf[:, j],axis=0))
+
+				averaged_c2[0, i, j] = nominator / denominator
+				averaged_c2[0, j, i] = averaged_c2[0, i, j]
+	else:
+		print(f"Unknown form ({form}) for calculating two-time correlation! Can ONLY be G or C()")
+
+	return q_bincenters, averaged_c2

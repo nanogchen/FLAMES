@@ -63,3 +63,13 @@ def g1(u):
         file_name=f"g1_results.zip",
         mime="application/zip"
     )
+
+    # fit 
+    fit_func = st.radio("Choose fitting function:", ["single-exp", "double-exp", "triple-exp"], horizontal=True)
+    if st.button("Fit"):
+        # show data as symbols and fit as lines
+        # get the time constant for each q
+        
+        pass
+        # func fit
+
