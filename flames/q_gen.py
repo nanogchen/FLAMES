@@ -18,24 +18,18 @@ import itertools
 import numpy as np
 from numba import njit, prange
 
-def get_q_points_plane(box, q_max, normal='y'):
+idx_dict = {"xz":[0,2],
+			"xy":[0,1],
+			"yz":[1,2],
+			}
+
+def get_q_points_plane(box, q_max, plane='xz'):
 	"""
 	construct q-points in a plane: xz with norm-y
 	or xy with norm z
 	"""
 
-	if normal == 'y':
-		idx_list = [0,2]
-
-	elif normal == 'z':
-		idx_list = [0,1]
-
-	elif normal == 'x':
-		idx_list = [1,2]
-
-	else:
-		print(f"Not allowed value of normal ({normal})! Can ONLY be x/y/z")
-		sys.exit(0)
+	idx_list=idx_dict[plane]
 
 	box2 = box[idx_list]
 	dq = np.diagflat(2*np.pi/box2)
@@ -50,6 +44,44 @@ def get_q_points_plane(box, q_max, normal='y'):
 	q_points2 = np.stack((qpts1.ravel(), qpts2.ravel()), axis=-1)
 	q_points = np.zeros((q_points2.shape[0], 3))
 	q_points[:, idx_list] = q_points2
+
+	return q1,q2,q_points
+
+def get_q_points_ring(box, qmin, qmax, plane):
+
+	# in a circle
+	_,_,q_points = get_q_points_plane(box, qmin+qmax, plane)
+
+	# distance measure and sort out
+	q_dist = np.linalg.norm(q_points, axis=1)
+	argsort = np.argsort(q_dist)
+	q_dist = q_dist[argsort]
+	q_points = q_points[argsort]
+
+	# prune based on q-range
+	mask = (q_dist >= qmin) & (q_dist <= qmax)
+	q_points = q_points[mask]
+
+	return q_points
+
+def get_q_points_angular_bin(box, qmin, qmax, Nbins, angle_deg, plane):
+
+	idx_list=idx_dict[plane]
+
+	# generate the q-ring
+	q_points = get_q_points_ring(box, qmin, qmax, plane)
+	q_points2 = q_points[:, idx_list]
+	
+	# Calculate q-angles in radians (range -pi to pi)
+	angles = np.arctan2(q_points2[:, 1], q_points2[:, 0])
+	bin_edges = np.linspace(-np.pi, np.pi, Nbins + 1)
+	bin_indices = np.digitize(angles, bin_edges, right=True)
+	
+	bin_idx_target = np.digitize(np.deg2rad(angle_deg), bin_edges)
+	qpoints2_bin = q_points2[bin_indices == bin_idx_target]
+
+	q_points = np.zeros((qpoints2_bin.shape[0], 3))
+	q_points[:, idx_list] = qpoints2_bin
 
 	return q_points
 
@@ -106,19 +138,6 @@ def get_rho_q_noFF(x, q):
 		rho_q[iq] = rho
 
 	return rho_q
-
-def filter_qpopints_by_range(q_points, qmin, qmax):
-
-	# distance measure and sort out
-	q_dist = np.linalg.norm(q_points, axis=1)
-	argsort = np.argsort(q_dist)
-	q_dist = q_dist[argsort]
-	q_points = q_points[argsort]
-
-	# prune based on q-range
-	q_points = q_points[q_dist <= qmax and q_dist >= qmin]
-
-	return q_points
 
 def get_prune_distance(max_points, q_max, q_vol):
 	"""from dynasor: originally just first-quadrant"""
@@ -230,7 +249,7 @@ def get_binning_averages_ttc(q_points, ssf, I_q_t1_t2, form="G"):
 	Nframes = I_q_t1_t2.shape[1]
 
 	# 1 q-bin (either along x or y or z)
-	averaged_c2 = np.zeros((1, Nframes, Nframes))
+	averaged_c2 = np.zeros((Nframes, Nframes))
 	q_bincenters = np.mean(np.linalg.norm(q_points, axis=1))
 
 	if form == "G": #  = (<I1*I2> - <I1>*<I2>) / (sigma(I1)*sigma(I2)); G=C-1
@@ -241,8 +260,8 @@ def get_binning_averages_ttc(q_points, ssf, I_q_t1_t2, form="G"):
 				nominator = np.mean(I_q_t1_t2[:, i, j],axis=0) - (np.mean(ssf[:, i],axis=0)) * (np.mean(ssf[:, j], axis=0))
 				denominator = np.std(ssf[:, i], axis=0) * np.std(ssf[:, j], axis=0) 
 
-				averaged_c2[0, i, j] = nominator / denominator
-				averaged_c2[0, j, i] = averaged_c2[0, i, j]
+				averaged_c2[i, j] = nominator / denominator
+				averaged_c2[j, i] = averaged_c2[i, j]
 
 	elif form == "C": #  = <I1*I2> / (<I1>*<I2>)
 
@@ -252,8 +271,8 @@ def get_binning_averages_ttc(q_points, ssf, I_q_t1_t2, form="G"):
 				nominator = I_q_t1_t2[:, i, j].mean(axis=0)
 				denominator = (np.mean(ssf[:, i],axis=0)) * (np.mean(ssf[:, j],axis=0))
 
-				averaged_c2[0, i, j] = nominator / denominator
-				averaged_c2[0, j, i] = averaged_c2[0, i, j]
+				averaged_c2[i, j] = nominator / denominator
+				averaged_c2[j, i] = averaged_c2[i, j]
 	else:
 		print(f"Unknown form ({form}) for calculating two-time correlation! Can ONLY be G or C()")
 

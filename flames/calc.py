@@ -26,6 +26,7 @@ from scipy.signal import correlate
 import sys
 sys.path.insert(0, "/home/softmatter/flames/flames")
 from q_gen import get_rho_q,get_rho_q_noFF,get_q_points_all_quads,get_binning_averages,get_binning_averages_ttc
+from q_gen import get_q_points_plane,get_q_points_angular_bin
 
 def get_static_sf(q_points, system, traj, formfact_all):
 
@@ -81,39 +82,7 @@ def get_scattering_image(box, q_max, system, traj, plane='xz'):
 	construct q-points in a plane
 	"""
 
-	if plane == 'xz':
-		idx_list = [0,2]
-		xlabel = 'x'
-		ylabel = 'z'
-
-	elif plane == 'xy':
-		idx_list = [0,1]
-		xlabel = 'x'
-		ylabel = 'y'
-
-	elif plane == 'yz':
-		# just for completeness, may not be used
-		idx_list = [1,2]
-		xlabel = 'y'
-		ylabel = 'z'
-
-	else:
-		print(f"Not allowed value of plane ({plane})! Can ONLY be xy/yz/xz")
-		sys.exit(0)
-
-	box2 = box[idx_list]
-	dq = np.diagflat(2*np.pi/box2)
-	N = np.ceil(q_max/np.diag(dq)).astype(int)
-
-	# form the q-points in each of the two direction
-	q1 = np.arange(-N[0], N[0]+1) * dq[0,0] # 2*N+1
-	q2 = np.arange(-N[1], N[1]+1) * dq[1,1]
-
-	# the q-points
-	qpts1, qpts2 = np.meshgrid(q1, q2)
-	q_points2 = np.stack((qpts1.ravel(), qpts2.ravel()), axis=-1)
-	q_points = np.zeros((q_points2.shape[0], 3))
-	q_points[:, idx_list] = q_points2
+	q1,q2,q_points = get_q_points_plane(box, q_max, plane)
 
 	# out array
 	ssf_1d = np.zeros((len(q_points), len(traj)))
@@ -132,10 +101,13 @@ def get_scattering_image(box, q_max, system, traj, plane='xz'):
 
 	return q_points, ssf_1d, q1, q2, ssf_2d
 
-def get_ttc(q_points, system, traj, formfact_all):
+def get_ttc(box, q_min, q_max, Nbins, angle_deg, system, traj, formfact_all, plane='xz'):
 	"""
 	get two-time correlation C(q,t1,t2).
 	"""		
+
+	# generate q-points
+	q_points = get_q_points_angular_bin(box, q_min, q_max, Nbins, angle_deg, plane)
 
 	# first get s(q,t)
 	n_qpoints = len(q_points)
@@ -158,7 +130,7 @@ def get_ttc(q_points, system, traj, formfact_all):
 	for iq in prange(n_qpoints):
 		I_q_t1_t2[iq] = np.outer(ssf[iq],ssf[iq])
 	
-	return ssf, I_q_t1_t2
+	return q_points, ssf, I_q_t1_t2
 
 def get_ISF_corr(q_points, system, traj, formfact_all):
 

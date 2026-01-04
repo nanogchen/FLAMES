@@ -24,7 +24,7 @@ def saxs2d(u):
         # select plane            
         st.session_state.input['saxs_2d_plane'] = st.radio("Choose scattering plane:", ["xy", "xz", "yz"], horizontal=True)
     with col3:
-        q_max = st.number_input("q_max (Å⁻¹ or $\\sigma$)", value=2.00, min_value=float(2*np.pi/L), step=1.0, format="%.2f")
+        q_max = st.number_input("q_max (Å⁻¹ or $\\sigma$)", value=10.00, min_value=float(2*np.pi/L), step=1.0, format="%.2f")
 
     # do scattering
     system = u.select_atoms(ag_str)         
