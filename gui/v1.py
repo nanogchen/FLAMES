@@ -1,18 +1,17 @@
 import streamlit as st
 import MDAnalysis as mda
-import numpy as np
-import pandas as pd
-import plotly.express as px
-import plotly.graph_objects as go
-import os,math,sys
-import io
-import zipfile
 import tkinter as tk
 from tkinter import filedialog
+import sys,os
 sys.path.insert(0, "../")
 
-from flames.q_gen import get_q_points_all_quads, get_binning_averages
-from flames.calc import get_static_sf, get_sf_decomposition, get_scattering_image
+from init_page import init_page
+from saxs1d import saxs1d
+from saxs2d import saxs2d
+from psf import psf
+from ttc import ttc
+from isf_dsf import isf_dsf
+from g1 import g1
 
 # ---------------------------------------------------------------------------- Page Configuration
 # ---------------------------------------------------------------------------- Page Configuration
@@ -31,26 +30,9 @@ if "selected_tasks" not in st.session_state:
 if 'input' not in st.session_state:
     st.session_state.input = {}
 
-def create_zip_download(results_dict):
-    """
-    results_dict: {'saxs_1d': array, 'ttc_matrix': array, ...}
-    """
-    # 1. Create an in-memory byte stream for the zip file
-    zip_buffer = io.BytesIO()
-
-    with zipfile.ZipFile(zip_buffer, "a", zipfile.ZIP_DEFLATED, False) as zip_file:
-        for filename, array in results_dict.items():
-            # 2. Create an in-memory byte stream for the numpy array
-            array_buffer = io.BytesIO()
-            np.save(array_buffer, array)
-            
-            # 3. Write the numpy buffer into the zip file
-            zip_file.writestr(f"{filename}.npy", array_buffer.getvalue())
-
-    return zip_buffer.getvalue()    
-
 # ---------------------------------------------------------------------------- Sidebar: File Navigation
 # ---------------------------------------------------------------------------- Sidebar: File Navigation
+
 st.sidebar.title("📁 File Explorer")
 
 # Function to trigger the Tkinter folder picker
@@ -122,82 +104,23 @@ else:
 # if st.session_state.dt_values is not None:
 #     st.sidebar.success(f"✅ Time Info Set")
 # else:
-#     st.sidebar.warning("⚠️  Time Info Not Set")    
+#     st.sidebar.warning("⚠️  Time Info Not Set")  
 
 # ---------------------------------------------------------------------------- Main Dashboard
 # ---------------------------------------------------------------------------- Main Dashboard
 st.title("🔬 MD-XPCS Analysis Suite")
 
 if files:
-    st.success(f"Universe Loaded: {len(u.trajectory)} frames, {len(u.atoms)} atoms")
+    st.success(f"Trajectory Loaded: {len(u.trajectory)} frames, {len(u.atoms)} atoms")
     
     # Analysis Tabs
-    tabinit, tab1d, tabpsf, tab2d, tabg1, tabttc = st.tabs([
-        "(q,t) Setup", "SAXS 1D", "PSF", "SAXS 2D", "g1 Correlation", "Two-Time Correlation"
+    tabinit, tab1d, tabpsf, tab2d, tabg1, tabisfdsf, tabttc = st.tabs([
+        "(q,t) Setup", "SAXS 1D", "PSF", "SAXS 2D", "g1 Correlation", "ISF-DSF", "Two-Time Correlation"
     ])
 
     with tabinit:
-        
-        col1, col2, col3 = st.columns([1, 1, 1])
-        
-        with col1:
-            st.subheader("Wavevector Generation")
-
-            st.session_state.input['unit'] = st.radio("Choose length unit:", ["real", "LJ"], horizontal=True)
-            # q_start = st.number_input("q_start (Å⁻¹)", value=0.00, min_value=0.0, step=0.01, format="%.2f")
-            L = max(u.dimensions[:3])
-            q_end = st.number_input("q_end (Å⁻¹ or $\\sigma$)", value=1.00, min_value=float(2*np.pi/L), step=0.01, format="%.2f")
-            max_q_points = st.number_input("Max number of q-points", value=3000, min_value=1000, step=100)
-            
-            # save input
-            st.session_state.input['q_end'] = q_end
-            st.session_state.input['max_q_points'] = max_q_points
-
-            # gen q-points
-            if st.button("Generate Wavevectors"):
-                
-                # get box info
-                bx, by, bz = u.dimensions[:3]
-                st.session_state.input['Box Array'] = np.array([bx, by, bz])
-
-                q_points = get_q_points_all_quads(np.array([bx, by, bz]), q_end, max_points=max_q_points)
-                st.session_state.q_values = q_points
-                st.session_state.input['dq_values'] = float(2*np.pi/L)
-
-                st.success(f"{q_points.shape[0]} wavevectors generated.")
-
-        with col2:
-            st.subheader("Simulation Time")
-
-            frame_start = st.number_input("frame_start", value=0, min_value=0, step=1)
-            frame_end = st.number_input("frame_end",     value=1, min_value=frame_start, max_value=len(u.trajectory),step=1)
-            frame_step = st.number_input("frame_step",   value=10, min_value=1, step=1)
-            traj_dt = st.number_input("traj_dt (ps)", value=1.00, step=0.001, min_value=0.001, format="%.3f")
-
-            st.session_state.input['frame_start'] = frame_start
-            st.session_state.input['frame_end'] = frame_end
-            st.session_state.input['frame_step'] = frame_step
-            st.session_state.input['traj_dt'] = traj_dt
-
-            # gen q-points
-            if st.button("OK"):
-                st.session_state.dt_values = traj_dt
-                st.success(f"Simulation time set.")
-
-        with col3:
-            st.subheader("Select Analysis Tasks")
-            tasks = st.multiselect(
-                "Choose tasks to perform:",
-                ["saxs-1D", "PSF", "saxs-2D", "g1 correlation", "ttc"],
-                default=st.session_state.selected_tasks
-            )
-            
-            if st.button("Initialize Analysis Pipeline"):
-                st.session_state.selected_tasks = tasks
-                st.success("Pipeline Initialized!")
-
-            st.text("PSF: partial structure factor\nttc: two-time correlation")
-            
+        init_page(u)
+                    
     # --- Analysis Tabs (Locked until Step 1 is complete) ---
     def check_initialization():
         if st.session_state.q_values is None:
@@ -225,256 +148,37 @@ if files:
     # ---------------------------------------------------------------------------- saxs-1D
     with tab1d:
         if check_initialization() and is_ready("saxs-1D"):
-            st.subheader("1D Scattering Intensity S(q)")
-            Fr_start = st.session_state.input['frame_start']
-            Fr_end = st.session_state.input['frame_end']
-            Fr_step = st.session_state.input['frame_step']
-            
-            # calculate
-            q_points = st.session_state.q_values
-            ag_str = st.text_input("system", value="all", help="MDAnalysis atoms selection")
-            system = u.select_atoms(ag_str)
-            formfact_all = np.array([1.0 for _ in range(system.atoms.n_atoms)])
-            ssf = get_static_sf(q_points, system, u.trajectory[Fr_start:Fr_end+1:Fr_step], formfact_all)
-
-            num_q_bins = int(st.session_state.input["q_end"]/round(st.session_state.input["dq_values"], 2))
-            qr, ssf_qr = get_binning_averages(num_q_bins, q_end, ssf, q_points)
-            ssf_qr_mean = np.mean(ssf_qr, axis=1)
-
-            fig_saxs = px.line(x=qr[1:], y=ssf_qr_mean[1:], 
-                log_x=True, log_y=True, 
-                markers=True,
-                labels={'x':'q (Å⁻¹)', 'y':'S(q)'})
-            # --- Download Button ---
-            df = pd.DataFrame({
-                "q_vector": qr,
-                "Intensity": ssf_qr_mean
-            })
-            csv = df.to_csv(index=False).encode('utf-8')
-            st.download_button(
-                label="📥 Download SAXS Data (CSV)",
-                data=csv,
-                file_name="saxs_analysis.csv",
-                mime="text/csv",
-            )
-            st.plotly_chart(fig_saxs, width='content')
+            saxs1d(u)            
 
     # ---------------------------------------------------------------------------- PSF
     # ---------------------------------------------------------------------------- PSF
     with tabpsf:
         if check_initialization() and is_ready("PSF"):
-            st.subheader("Partial structure factors")
-            psf_data = {}
-
-            # select two components
-            col1, col2 = st.columns(2)
-            with col1:
-                group_1_str = st.text_input("Component A Selection", value="resname DDP", help="MDAnalysis selection for group A")
-            with col2:
-                group_2_str = st.text_input("Component B Selection", value="not resname DDP", help="MDAnalysis selection for group B")
-
-            try:
-                # Validate selections
-                ag1 = u.select_atoms(group_1_str)
-                ag2 = u.select_atoms(group_2_str)
-                x1 = ag1.atoms.n_atoms / u.atoms.n_atoms
-                Fr_start = st.session_state.input['frame_start']
-                Fr_end = st.session_state.input['frame_end']
-                Fr_step = st.session_state.input['frame_step']
-                q_end = st.session_state.input["q_end"]
-                
-                st.info(f"Group 1: {len(ag1)} atoms (molar fraction={x1:.3f}) | Group 2: {len(ag2)} atoms\n")                
-                if st.button("Calculate PSF for these groups"):                    
-
-                    # calculate
-                    q_points = st.session_state.q_values
-                    system = u.select_atoms("all")
-                    formfact_all = np.array([1.0 for _ in range(system.atoms.n_atoms)])
-                    sf_AA, sf_AB, sf_BB = get_sf_decomposition(q_points,ag1,ag2,u.trajectory[Fr_start:Fr_end+1:Fr_step])
-
-                    num_q_bins = int(q_end/round(st.session_state.input["dq_values"], 2))
-                    qr, ssf_AA_qr = get_binning_averages(num_q_bins, q_end, sf_AA, q_points)
-                    qr, ssf_AB_qr = get_binning_averages(num_q_bins, q_end, sf_AB, q_points)
-                    qr, ssf_BB_qr = get_binning_averages(num_q_bins, q_end, sf_BB, q_points)
-        
-                    psf_data['q'] = qr
-                    psf_data['SAA'] = np.mean(ssf_AA_qr, axis=1)
-                    psf_data['SBB'] = np.mean(ssf_BB_qr, axis=1)
-                    psf_data['SAB'] = np.mean(ssf_AB_qr, axis=1)
-
-                    # other ones
-                    sf_nn = sf_AA + 2*sf_AB + sf_BB
-                    sf_cc = (1-x1)**2 * sf_AA + x1**2 * sf_BB - 2*x1*(1-x1)*sf_AB
-                    sf_nc = (1-x1)*sf_AA - x1*sf_BB + (1-x1-x1)*sf_AB
-                    qr, ssf_nn_qr = get_binning_averages(num_q_bins, q_end, sf_nn, q_points)
-                    qr, ssf_cc_qr = get_binning_averages(num_q_bins, q_end, sf_cc, q_points)
-                    qr, ssf_nc_qr = get_binning_averages(num_q_bins, q_end, sf_nc, q_points)
-                    psf_data['Snn'] = np.mean(ssf_nn_qr, axis=1)
-                    psf_data['Scc'] = np.mean(ssf_cc_qr, axis=1)
-                    psf_data['Snc'] = np.mean(ssf_nc_qr, axis=1)
-
-                    # Download PSF Data 
-                    df_psf = pd.DataFrame(psf_data)           
-                    csv_psf = df_psf.to_csv(index=False).encode('utf-8')
-                    st.download_button("📥 Download PSF Data", csv_psf, "psf_results.csv", "text/csv")
-                    
-                    # plots
-                    col1, col2 = st.columns(2)
-                    with col1:
-                        # Create a Plotly Figure
-                        fig = go.Figure()
-                        fig.add_trace(go.Scatter(x=psf_data['q'][1:], y=psf_data['SAA'][1:], mode='lines', 
-                                                 name='S<sub>AA</sub>', line=dict(color='firebrick', width=2)))            
-                        fig.add_trace(go.Scatter(x=psf_data['q'][1:], y=psf_data['SBB'][1:], mode='lines', 
-                                                 name='S<sub>BB</sub>', line=dict(dash='dash', color='royalblue', width=2)))            
-                        fig.add_trace(go.Scatter(x=psf_data['q'][1:], y=psf_data['SAB'][1:], mode='lines', 
-                                                 name='S<sub>AB</sub>', line=dict(dash='dot', color='green', width=2)))
-
-                        # Update Layout for better visibility
-                        fig.update_layout(
-                            title=f"Multi-component partial structure factors",
-                            xaxis_title="q (Å⁻¹)",
-                            yaxis_title="S(q)",
-                            legend=dict(yanchor="top", y=0.99, xanchor="right", x=0.99),
-                            hovermode="x unified"
-                        )
-
-                        st.plotly_chart(fig, width='content')
-
-                    with col2:
-                        # Create a Plotly Figure
-                        fig = go.Figure()
-                        fig.add_trace(go.Scatter(x=psf_data['q'][1:], y=psf_data['Snn'][1:], mode='lines', 
-                                                 name='Snn', line=dict(color='firebrick', width=2)))            
-                        fig.add_trace(go.Scatter(x=psf_data['q'][1:], y=psf_data['Scc'][1:], mode='lines', 
-                                                 name='Scc', line=dict(dash='dash', color='royalblue', width=2)))            
-                        fig.add_trace(go.Scatter(x=psf_data['q'][1:], y=psf_data['Snc'][1:], mode='lines', 
-                                                 name='Snc', line=dict(dash='dot', color='green', width=2)))
-
-                        # Update Layout for better visibility
-                        fig.update_layout(
-                            title=f"number/concentration structure factors",
-                            xaxis_title="q (Å⁻¹)",
-                            yaxis_title="S(q)",
-                            legend=dict(yanchor="top", y=0.99, xanchor="right", x=0.99),
-                            hovermode="x unified"
-                        )
-
-                        st.plotly_chart(fig, width='content')                    
-            
-            except Exception as e:
-                st.error(f"Selection Error: {e}")            
+            psf(u)
 
     # ---------------------------------------------------------------------------- saxs-2D
     # ---------------------------------------------------------------------------- saxs-2D
     with tab2d:
         if check_initialization() and is_ready("saxs-2D"):
-            st.subheader("2D Scattering Intensity S(q1, q2)")
-            Fr_start = st.session_state.input['frame_start']
-            Fr_end = st.session_state.input['frame_end']
-            Fr_step = st.session_state.input['frame_step']
-            bx, by, bz = u.dimensions[:3]
-            L = max(bx, by, bz) 
+            saxs2d(u)
 
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                ag_str = st.text_input("Select system of interest", value="all", help="MDAnalysis atom group selection")
-            with col2:
-                # select plane            
-                st.session_state.input['saxs_2d_plane'] = st.radio("Choose scattering plane:", ["xy", "xz", "yz"], horizontal=True)
-            with col3:
-                q_max = st.number_input("q_max (Å⁻¹ or $\\sigma$)", value=2.00, min_value=float(2*np.pi/L), step=1.0, format="%.2f")
-
-            # do scattering
-            system = u.select_atoms(ag_str)         
-            q_points, ssf_1d, qpts1, qpts2, ssf_2d = get_scattering_image(np.array([bx, by, bz]), q_max, system, 
-                                                                        u.trajectory[Fr_start:Fr_end+1:Fr_step], 
-                                                                        plane=st.session_state.input['saxs_2d_plane'])
-            
-            num_q_bins = int(q_max/round(2*np.pi/L, 2))
-            qr, ssf_r = get_binning_averages(num_q_bins, q_max, ssf_1d, q_points)
-            ssf_qr_mean = np.mean(ssf_r, axis=1)
-            ssf_2d_mean = np.mean(ssf_2d, axis=-1)
-            ssf_2d_mean[int(ssf_2d.shape[0]/2), int(ssf_2d.shape[1]/2)] = 0.0
-            
-            # st.markdown("##### saxs scattering image (left) and saxs 1d profile (right)")
-            fig=go.Figure(go.Heatmap(z=ssf_2d_mean.transpose(), connectgaps=True,
-                            zsmooth='best',
-                            colorscale='jet', colorbar_thickness=25))
-
-            # Update Layout for better visibility
-            fig.update_layout(
-                        # title=f"saxs scattering image",
-                        # title_x=0.3,
-                        # xaxis=dict(
-                        #     range=[qpts1[0], qpts1[-1]],  # Set X-axis range 
-                        #     autorange=False # Optional: Explicitly disable auto-ranging
-                        # ),
-                        # yaxis=dict(
-                        #     range=[qpts2[0], qpts2[-1]],  # Set Y-axis range 
-                        #     autorange=False # Optional: Explicitly disable auto-ranging
-                        # ),
-                        autosize=False,
-                        xaxis_title="q1",
-                        yaxis_title="q2",
-                        width=500,  # Set a specific width
-                        height=500, # Set a specific height to help control the overall figure size
-                        yaxis_scaleanchor="x"
-                    )
-
-            st.plotly_chart(fig, width='content')
-
-            # --- Download Button ---
-            data_to_zip = {
-                "qpts1": qpts1,
-                "qpts2": qpts2,
-                "saxs_2d":ssf_2d_mean.transpose()
-            }
-
-            zip_data = create_zip_download(data_to_zip)
-
-            st.download_button(
-                label="📥 Download All Results (.zip)",
-                data=zip_data,
-                file_name=f"saxs2d_{st.session_state.input['saxs_2d_plane']}_results.zip",
-                mime="application/zip"
-            )
-
-            if st.button("Get saxs-1d results"):
-  
-                fig_saxs1d = px.line(x=qr[1:], y=ssf_qr_mean[1:], 
-                    # log_x=True, log_y=True, 
-                    markers=True,
-                    labels={'x':'q', 'y':'S(q)'})
-                # Update Layout for better visibility
-                fig_saxs1d.update_layout(
-                            # title=f"saxs 1d profile",
-                            # title_x=0.3,
-                            autosize=False,
-                            # height=500, # Set a specific height to help control the overall figure size
-                        )              
-                st.plotly_chart(fig_saxs1d, width='content')
-
+    # ---------------------------------------------------------------------------- g1
+    # ---------------------------------------------------------------------------- g1
     with tabg1:
         if check_initialization() and is_ready("g1 correlation"):
-            st.subheader("Dynamics $g^{(1)}(q, dt)$")
-            # Allow user to pick from the ALREADY generated q-values
-            q_choice = st.select_slider("Select $q$ for correlation analysis", options=np.round(st.session_state.q_values, 3))
-            
-            tau = np.logspace(0, 4, 100)
-            # Relationship: g1 drops faster for higher q (smaller distances)
-            g1 = np.exp(-(q_choice**2) * 0.1 * tau)
-            
-            fig_g1 = px.line(x=tau, y=g1, log_x=True, title=f"Intermediate Scattering Function at q = {q_choice}")
-            st.plotly_chart(fig_g1, width='content')
+            g1(u)
 
+    # ---------------------------------------------------------------------------- isf-dsf
+    # ---------------------------------------------------------------------------- isf-dsf
+    with tabisfdsf:
+        if check_initialization() and is_ready("ISF-DSF"):
+            isf_dsf(u)
+
+    # ---------------------------------------------------------------------------- ttc
+    # ---------------------------------------------------------------------------- ttc
     with tabttc:
         if check_initialization() and is_ready("ttc"):
-            st.subheader("Two-Time Correlation (TTC)")
-            # Representation of aging/dynamics
-            matrix = np.exp(-np.abs(np.subtract.outer(np.arange(50), np.arange(50))) / 10)
-            fig = go.Figure(data=go.Heatmap(z=matrix, colorscale='Viridis'))
-            st.plotly_chart(fig, width='content') # or stretch/content
+            ttc(u)
 
 else:
     st.info("Select your MD files from the sidebar to populate analysis panels.")

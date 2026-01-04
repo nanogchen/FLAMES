@@ -18,9 +18,9 @@ import itertools
 import numpy as np
 from numba import njit, prange
 
-def get_q_points_slab(box, q_max, normal='y'):
+def get_q_points_plane(box, q_max, normal='y'):
 	"""
-	construct q-points in a slab: xz with norm-y
+	construct q-points in a plane: xz with norm-y
 	or xy with norm z
 	"""
 
@@ -106,6 +106,19 @@ def get_rho_q_noFF(x, q):
 		rho_q[iq] = rho
 
 	return rho_q
+
+def filter_qpopints_by_range(q_points, qmin, qmax):
+
+	# distance measure and sort out
+	q_dist = np.linalg.norm(q_points, axis=1)
+	argsort = np.argsort(q_dist)
+	q_dist = q_dist[argsort]
+	q_points = q_points[argsort]
+
+	# prune based on q-range
+	q_points = q_points[q_dist <= qmax and q_dist >= qmin]
+
+	return q_points
 
 def get_prune_distance(max_points, q_max, q_vol):
 	"""from dynasor: originally just first-quadrant"""
