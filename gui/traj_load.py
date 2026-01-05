@@ -47,7 +47,7 @@ def load_traj():
 
     # Manual path override
     st.session_state.current_path = st.text_input(
-        "Active Path:", 
+        "Active path:", 
         st.session_state.current_path
     )
 
@@ -58,11 +58,11 @@ def load_traj():
     if files:
         with col1:
             # topo_file = st.file_uploader("1. Topology (PDB, GRO)", type=['pdb', 'gro'])
-            selected_topo = st.selectbox("1. Select Coordinate (PDB/GRO/DATA)", files)
+            selected_topo = st.selectbox("1. Select coordinate (PDB/GRO/DATA)", files)
         
         with col2:
             # traj_file = st.file_uploader("2. Trajectory (XTC, DCD)", type=['xtc', 'dcd'])
-            selected_traj = st.selectbox("2. Select Trajectory (XTC/DCD/LAMMPSTRAJ)", files)
+            selected_traj = st.selectbox("2. Select trajectory (XTC/DCD/LAMMPSTRAJ)", files)
 
     else:
         st.warning("No MD files found in this directory. Please select your directory first!")
@@ -94,6 +94,12 @@ def load_traj():
         stats_col2.metric("Residues", f"{len(u.residues):,}")        
         stats_col3.metric("Frames", f"{len(u.trajectory)}")
 
+        # # If u.atoms has element attributes
+        # if hasattr(u.atoms, 'elements'):
+        #     # Use .types or .elements to get the string representations
+        #     unique_elements = np.unique(u.atoms.elements)
+        #     st.write(f"Elements: {', '.join(unique_elements)}")
+
         if hasattr(u.atoms, 'names'):
             unique_names = np.unique(u.atoms.names)
 
@@ -105,4 +111,12 @@ def load_traj():
 
             st.write("Residue Names")
             st.info(", ".join(unique_resnames))
+
+        # atom selection
+        st.write("MDAnalysis atom selection examples")   
+        st.info('''
+        Select atoms by index (inclusive, 0-based): u.select_atoms(\"index 0:5\")\n\n
+        Select atoms by id (inclusive, 1-based): u.select_atoms(\"id 1:5\")
+        ''')
+
                     

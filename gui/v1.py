@@ -50,10 +50,10 @@ if st.session_state.dt_values is not None:
 else:
     st.sidebar.warning("⚠️  Sim Time Info Not Set")
 
-st.sidebar.markdown("---")
-st.sidebar.subheader("Analysis Task Summary")
-for task in st.session_state.selected_tasks:
-    st.sidebar.write(f"{task}")
+# st.sidebar.markdown("---")
+# st.sidebar.subheader("Analysis Task Summary")
+# for task in st.session_state.selected_tasks:
+#     st.sidebar.write(f"{task}")
 
 def draw_sidebar_footer():
     with st.sidebar:

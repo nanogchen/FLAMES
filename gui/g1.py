@@ -3,10 +3,10 @@ import numpy as np
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-
+import math
 from fileIO import create_zip_download
-from flames.q_gen import get_binning_averages
-from flames.calc import get_scattering_image
+from flames.q_gen import get_binning_averages_by_range,filter_q_points_shell
+from flames.calc import get_ISF_corr
 
 def g1(u):
 
@@ -15,31 +15,41 @@ def g1(u):
     Fr_end = st.session_state.input['frame_end']
     Fr_step = st.session_state.input['frame_step']
     traj_dt = st.session_state.input['traj_dt']
+    time = np.arange(Fr_start, Fr_end, Fr_step)*traj_dt
+    dq = round(st.session_state.input["dq_values"], 2)
 
-    # The slider returns a tuple (start, end)
-    q_range = st.slider(
-        label="Select Analysis Q-Range (Å⁻¹)",
-        min_value=0.02,
-        max_value=st.session_state.input["q_end"],
-        value=(0.1, 1.0), # Providing a tuple creates the range bar
-        step=0.01
-    )
-    st.write(f"Start: {q_range[0]} | End: {q_range[1]}")
+    col1, col2 = st.columns(2)
+    with col1:
+        # The slider returns a tuple (start, end)
+        q_range = st.slider(
+            label="Select analysis q-range (Å⁻¹)",
+            min_value=dq,
+            max_value=st.session_state.input["q_end"],
+            value=(dq, min(dq*5, st.session_state.input["q_end"])), # Providing a tuple creates the range bar
+            step=dq
+        )
+        st.write(f"Start: {q_range[0]} | End: {q_range[1]}")
+    with col2:
+        ag_str = st.text_input("Select system of interest", value=f"index 0:{len(u.atoms)//2}", help="MDAnalysis atom group selection")
 
     # calc g1
-    dq = round(st.session_state.input["dq_values"], 2)
-    q_range = np.arange(q_range[0],q_range[1],dq)
-    time = np.arange(Fr_start, Fr_end, Fr_step)*traj_dt
-    g1_all = np.zeros((len(q_range), len(time)))
+    q_points_shell = filter_q_points_shell(st.session_state.q_values,q_range[0],q_range[1])
+    system = u.select_atoms(ag_str)
+    system_all = u.select_atoms("all")
+    formfact_all = np.array([1.0 if i<system.atoms.n_atoms else 0 for i in range(len(u.atoms))])
+    isf = get_ISF_corr(q_points_shell, system_all, u.trajectory[Fr_start:Fr_end+1:Fr_step], formfact_all)
     
-    for idx, iq in enumerate(q_range):                
-        # Relationship: g1 drops faster for higher q (smaller distances)
-        g1 = np.exp(-(iq**2) * 0.1 * time)
-        g1_all[idx, :] = g1
-    
+    g1 = np.zeros(isf.shape)
+    for idx in range(isf.shape[0]):
+        g1[idx, :] = isf[idx,:]/isf[idx,0]
+
+    num_q_bins = math.ceil((q_range[1]-q_range[0])/dq)
+    qr_g1, g1_qr = get_binning_averages_by_range(num_q_bins, q_range[0], q_range[1], g1, q_points_shell)
+    Nt = len(time)//2
+
     fig_g1 = go.Figure()
-    for iq, g1 in zip(q_range, g1_all):
-        fig_g1.add_trace(go.Scatter(x=time, y=g1, name=f'q={iq:.2f}'))            
+    for iq, g1 in zip(qr_g1, g1_qr):
+        fig_g1.add_trace(go.Scatter(x=time[:Nt], y=g1[:Nt], name=f'q={iq:.2f}'))            
 
     fig_g1.update_layout(
                 autosize=False,
@@ -51,8 +61,8 @@ def g1(u):
 
     # --- Download Button ---
     data_to_zip = {
-        "q_range": q_range,
-        "g1_all":g1_all
+        "q": qr_g1[:Nt],
+        "g1":g1_qr[:Nt]
     }
 
     zip_data = create_zip_download(data_to_zip)

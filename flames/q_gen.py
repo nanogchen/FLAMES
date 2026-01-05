@@ -85,6 +85,21 @@ def get_q_points_angular_bin(box, qmin, qmax, Nbins, angle_deg, plane):
 
 	return q_points
 
+def filter_q_points_shell(q_points, qmin, qmax):
+	"""
+	filter q-points in a 3-d shell
+	"""
+
+	q_dist = np.linalg.norm(q_points, axis=1)
+	argsort = np.argsort(q_dist)
+	q_dist = q_dist[argsort]
+	q_points = q_points[argsort]
+
+	mask = (q_dist >= qmin) & (q_dist <= qmax)
+	q_points_shell = q_points[mask]
+
+	return q_points_shell
+
 """from dynasor, with some modification"""
 
 @njit(fastmath=True, nogil=True)
@@ -223,6 +238,36 @@ def get_binning_averages(num_q_bins, q_end, data_in_q_t, q_points):
 
 	# setup bins
 	bin_counts, edges = np.histogram(q_norms, bins=num_q_bins, range=(0.0, q_end))
+	q_bincenters = 0.5 * (edges[1:] + edges[:-1])
+
+	# calculate average for each bin
+	averaged_data = np.zeros((num_q_bins, Nframes))
+	for bin_index in range(num_q_bins):
+		# find q-indices that belong to this bin
+		bin_min = edges[bin_index]
+		bin_max = edges[bin_index + 1]
+		bin_count = bin_counts[bin_index]
+		q_indices = np.where(np.logical_and(q_norms >= bin_min, q_norms < bin_max))[0]
+
+		# average over q-indices, if no indices then np.nan
+		if bin_count == 0:
+			print(f'No q-points for bin {bin_index}')
+			data_bin = np.array([np.nan for _ in range(Nframes)])
+		else:
+			data_bin = data_in_q_t[q_indices, :].mean(axis=0)
+		averaged_data[bin_index, :] = data_bin
+
+	return q_bincenters, averaged_data
+
+def get_binning_averages_by_range(num_q_bins, q_min, q_max, data_in_q_t, q_points):
+	""" get function of q_norm by binning"""
+
+	# do binning
+	Nframes = data_in_q_t.shape[1]
+	q_norms = np.linalg.norm(q_points, axis=1)
+
+	# setup bins
+	bin_counts, edges = np.histogram(q_norms, bins=num_q_bins, range=(q_min, q_max))
 	q_bincenters = 0.5 * (edges[1:] + edges[:-1])
 
 	# calculate average for each bin
