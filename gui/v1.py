@@ -76,7 +76,7 @@ st.title("🔬 MD-XPCS Analysis Suite")
     
 # Analysis Tabs
 tabtraj, tabinit, tab1d, tabpsf, tab2d, tabg1, tabisfdsf, tabttc = st.tabs([
-    "📂 Trajectory Setup", "(q,t) Setup", "SAXS 1D", "PSF", "SAXS 2D", "g1 Correlation", "ISF-DSF", "Two-Time Correlation"
+    "📂 Trajectory Setup", "(q,t) Setup", "SAXS 1D", "PSF", "SAXS 2D", "g1 Correlation", "ISF-IXS", "Two-Time Correlation"
 ])
 
 with tabtraj:
@@ -112,7 +112,7 @@ if st.session_state.u:
     # ---------------------------------------------------------------------------- saxs-1D
     # ---------------------------------------------------------------------------- saxs-1D
     with tab1d:
-        if check_initialization() and is_ready("saxs-1D"):
+        if check_initialization() and is_ready("SAXS-1D"):
             saxs1d(st.session_state.u)            
 
     # ---------------------------------------------------------------------------- PSF
@@ -124,7 +124,7 @@ if st.session_state.u:
     # ---------------------------------------------------------------------------- saxs-2D
     # ---------------------------------------------------------------------------- saxs-2D
     with tab2d:
-        if check_initialization() and is_ready("saxs-2D"):
+        if check_initialization() and is_ready("SAXS-2D"):
             saxs2d(st.session_state.u)
 
     # ---------------------------------------------------------------------------- g1
@@ -136,13 +136,13 @@ if st.session_state.u:
     # ---------------------------------------------------------------------------- isf-dsf
     # ---------------------------------------------------------------------------- isf-dsf
     with tabisfdsf:
-        if check_initialization() and is_ready("ISF-DSF"):
+        if check_initialization() and is_ready("ISF-IXS"):
             isf_dsf(st.session_state.u)
 
     # ---------------------------------------------------------------------------- ttc
     # ---------------------------------------------------------------------------- ttc
     with tabttc:
-        if check_initialization() and is_ready("ttc"):
+        if check_initialization() and is_ready("TTC"):
             ttc(st.session_state.u)
 
 else:

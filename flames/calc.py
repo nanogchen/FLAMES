@@ -230,3 +230,42 @@ def binning_local(data_in_q_t, q_points):
 
 	return q_bincenters, averaged_data
 
+def symm_func(t, inverse=True):
+	"""symmetric a sequence"""
+
+	if inverse:
+		t_ = t[::-1]*(-1)
+	else:
+		t_ = t[::-1]
+	t_ = list(t_[:-1])
+
+	t_.extend(list(t))
+
+	return np.array(t_)
+
+def fourier_transform_1d(x, fx):
+	x0, dx = x[0], x[1] - x[0]
+	g = np.fft.fft(fx) # DFT calculation
+	
+	# frequency normalization factor is 2*np.pi/dt
+	w = np.fft.fftfreq(x.size)*2*np.pi/dx # angular frequency
+	
+	# Multiply by external factor
+	g *= dx*np.exp(-complex(0,1)*w*x0) 
+	
+	return w,g
+
+def fft_dft_symm(Tseq, fTseq):
+	"""do Fourier tranformation on the autocorrelation functions, e.g, vel-acf using self-code
+	This gives the same results as the Filon formula
+	"""
+
+	# symmetrize the input
+	T_symm = symm_func(Tseq)
+	fT_symm = symm_func(fTseq, inverse=False)
+
+	# do FT
+	w, cw = fourier_transform_1d(T_symm, fT_symm)
+
+	return w[:len(w)//2], np.abs(cw)[:len(w)//2]
+	# return w, cw

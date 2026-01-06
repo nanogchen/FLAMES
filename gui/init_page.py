@@ -36,7 +36,7 @@ def init_page(u):
         st.subheader("Simulation Time")
 
         frame_start = st.number_input("Frame start", value=0, min_value=0, step=1)
-        frame_end = st.number_input("Frame end",     value=1, min_value=frame_start, max_value=len(u.trajectory),step=1)
+        frame_end = st.number_input("Frame end",     value=1, min_value=frame_start, max_value=max(len(u.trajectory)-1, 1),step=1)
         frame_step = st.number_input("Frame step",   value=10, min_value=1, step=1)
         traj_dt = st.number_input("Traj dt (ps)", value=1.00, step=0.001, min_value=0.001, format="%.3f")
 
@@ -54,7 +54,7 @@ def init_page(u):
         st.subheader("Select Analysis Tasks")
         tasks = st.multiselect(
             "Choose tasks to perform:",
-            ["saxs-1D", "PSF", "saxs-2D", "g1 correlation", "ISF-DSF", "ttc"],
+            ["SAXS-1D", "PSF", "SAXS-2D", "g1 correlation", "ISF-IXS", "TTC"],
             default=st.session_state.selected_tasks
         )
         
@@ -62,4 +62,4 @@ def init_page(u):
             st.session_state.selected_tasks = tasks
             st.success("Pipeline Initialized!")
 
-        st.text("PSF: partial structure factor\nISF: intermediate scattering function;\nDSF: dynamic structure factor\nttc: two-time correlation")
+        st.text("SAXS: small angle X-ray scattering\nPSF: partial structure factor\nISF: intermediate scattering function\nIXS: inelastic X-ray scattering\nTTC: two-time correlation")

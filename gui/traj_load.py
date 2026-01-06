@@ -113,10 +113,14 @@ def load_traj():
             st.info(", ".join(unique_resnames))
 
         # atom selection
-        st.write("MDAnalysis atom selection examples")   
-        st.info('''
-        Select atoms by index (inclusive, 0-based): u.select_atoms(\"index 0:5\")\n\n
-        Select atoms by id (inclusive, 1-based): u.select_atoms(\"id 1:5\")
-        ''')
+        st.write("MDAnalysis atom selection examples")
+        st.code('''
+# Select atoms by index (inclusive, 0-based)
+u.select_atoms(\"index 0:5\")\n
+# Select atoms by id (inclusive, 1-based)
+u.select_atoms(\"id 1:5\")\n
+# Select atoms by index range
+u.select_atoms(\"prop index < 5\")''')
+
 
                     

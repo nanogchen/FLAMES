@@ -81,7 +81,7 @@ def saxs2d(u):
         mime="application/zip"
     )
 
-    if st.button("Get saxs-1d results"):
+    if st.button("Get SAXS-1d results"):
 
         fig_saxs1d = px.line(x=qr[1:], y=ssf_qr_mean[1:], 
             # log_x=True, log_y=True, 

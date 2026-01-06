@@ -30,7 +30,7 @@ def ttc(u):
     with col4:
         angle_deg = st.number_input("scattering angle (-180,180]", value=90.0, min_value=-180.0, max_value=180.0, step=1.0, format="%.1f")
     with col5:
-        q_i = st.number_input("wavenumber (Å⁻¹ or $\\sigma$)", value=1.00, min_value=float(dq), step=float(dq), format="%.2f")
+        q_i = st.number_input("wavenumber (Å⁻¹ or $\\sigma$)", value=0.95, min_value=float(dq)*5, step=float(dq), format="%.2f")
     
     # get ttc: given a q-point and direction (like saxs2d), i.e., localQbin    
     system = u.select_atoms(ag_str)
@@ -67,6 +67,7 @@ def ttc(u):
     # Update Layout for better visibility
     fig.update_layout(
                 title=f"Two-Time Correlation Function",
+                # title_x=0.5,
                 autosize=False,
                 xaxis_title="t1",
                 yaxis_title="t2",

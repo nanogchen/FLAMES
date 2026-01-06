@@ -28,7 +28,7 @@ def psf(u):
         Fr_step = st.session_state.input['frame_step']
         q_end = st.session_state.input["q_end"]
         
-        st.info(f"Group 1: {len(ag1)} atoms (molar fraction={x1:.3f}) | Group 2: {len(ag2)} atoms\n")                
+        st.info(f"Group A: {len(ag1)} atoms (molar fraction={x1:.3f}) | Group B: {len(ag2)} atoms\n")                
         if st.button("Calculate PSF for these groups"):                    
 
             # calculate
