@@ -21,16 +21,25 @@ def ttc(u):
 
     col1, col2, col3, col4, col5 = st.columns(5)
     with col1:
-        ag_str = st.text_input("Select system of interest", value="all", help="MDAnalysis atom group selection")
+        ag_str = st.text_input(
+            "Select system of interest",
+            value="all",
+            help="MDAnalysis atom group selection",
+            key='ttc_ag')
     with col2:
         # select plane            
-        st.session_state.input['ttc_2d_plane'] = st.radio("Choose scattering plane:", ["xy", "xz", "yz"], horizontal=True)
+        st.session_state.input['ttc_2d_plane'] = st.radio(
+            "Choose scattering plane:", 
+            ["xy", "xz", "yz"], 
+            horizontal=True,
+            key='ttc_plane'
+            )
     with col3:
         Nbins = st.number_input("No. of angular bins", value=18, min_value=10, max_value=36, step=2)
     with col4:
         angle_deg = st.number_input("scattering angle (-180,180]", value=90.0, min_value=-180.0, max_value=180.0, step=1.0, format="%.1f")
     with col5:
-        q_i = st.number_input("wavenumber (Å⁻¹ or $\\sigma$)", value=0.95, min_value=float(dq)*5, step=float(dq), format="%.2f")
+        q_i = st.number_input("wavenumber (Å⁻¹ or $\\sigma$)", value=0.95, min_value=float(dq)*2, step=float(dq), format="%.2f")
     
     # get ttc: given a q-point and direction (like saxs2d), i.e., localQbin    
     system = u.select_atoms(ag_str)

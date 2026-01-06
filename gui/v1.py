@@ -14,7 +14,7 @@ from g1 import g1
 
 # ---------------------------------------------------------------------------- Page Configuration
 # ---------------------------------------------------------------------------- Page Configuration
-st.set_page_config(layout="wide", page_title="MD-XPCS Analyzer")
+st.set_page_config(layout="wide", page_title="Digital Twin")
 
 # ---------------------------------------------------------------------------- Initialize Session State for Directory
 # ---------------------------------------------------------------------------- Initialize Session State for Directory
@@ -66,13 +66,13 @@ def draw_sidebar_footer():
         with col2:
             st.link_button("Issues", "https://github.com/issues", use_container_width=True)
             
-        st.link_button("📖 Read MD-XPCS Paper", "https://doi.org/...", use_container_width=True)
+        st.link_button("📖 Read The Paper", "https://doi.org/...", use_container_width=True)
 
 draw_sidebar_footer()
 
 # ---------------------------------------------------------------------------- Main Dashboard
 # ---------------------------------------------------------------------------- Main Dashboard
-st.title("🔬 MD-XPCS Analysis Suite")
+st.title("🔬 Digital Twin")
     
 # Analysis Tabs
 tabtraj, tabinit, tab1d, tabpsf, tab2d, tabg1, tabisfdsf, tabttc = st.tabs([
