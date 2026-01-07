@@ -3,9 +3,9 @@ import numpy as np
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-from fileIO import create_zip_download
 import sys
 sys.path.insert(0, "../")
+from gui.fileIO import create_zip_download
 from flames.q_gen import get_binning_averages
 from flames.calc import get_scattering_image
 
@@ -25,7 +25,12 @@ def saxs2d(u):
         # select plane            
         st.session_state.input['saxs_2d_plane'] = st.radio("Choose scattering plane:", ["xy", "xz", "yz"], horizontal=True)
     with col3:
-        q_max = st.number_input("q_max (Å⁻¹ or $\\sigma$)", value=10.00, min_value=float(2*np.pi/L), step=1.0, format="%.2f")
+        if st.session_state.input['length_unit'] == "real":
+            q_temp = 2.0
+        else:
+            q_temp = 10.0
+
+        q_max = st.number_input("q_max (Å⁻¹ or $\\sigma$)", value=q_temp, min_value=float(2*np.pi/L), step=1.0, format="%.2f")
 
     # do scattering
     system = u.select_atoms(ag_str)         

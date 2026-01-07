@@ -1,87 +1,135 @@
 import streamlit as st
 import MDAnalysis as mda
-# import tempfile
 import os
 import numpy as np
-import tkinter as tk
-from tkinter import filedialog
+# import tkinter as tk
+# from tkinter import filedialog
+import tempfile
 
-# Function to trigger the Tkinter folder picker
-def browse_folder():
-    root = tk.Tk()
-    root.withdraw()  # Hide the main tkinter window
-    root.attributes('-topmost', True)  # Bring the dialog to the front
-    directory = filedialog.askdirectory(master=root)
-    root.destroy()
-    if directory:
-        st.session_state.current_path = directory
+# # Function to trigger the Tkinter folder picker
+# def browse_folder():
+#     root = tk.Tk()
+#     root.withdraw()  # Hide the main tkinter window
+#     root.attributes('-topmost', True)  # Bring the dialog to the front
+#     directory = filedialog.askdirectory(master=root)
+#     root.destroy()
+#     if directory:
+#         st.session_state.current_path = directory
+
+# @st.cache_resource
+# def load_trajectory(path, topo, traj):
+#     if topo and traj:
+#         try:
+#             u = mda.Universe(os.path.join(path, topo), os.path.join(path, traj))
+#             return u
+#         except Exception as e:
+#             st.error(f"Failed to load: {e}")
+#     return None
+
+# def list_files(path):
+#     try:
+#         # Filter for MD specific formats
+#         exts = ('.xtc', '.lammpstraj', '.pdb', '.gro', '.data', '.dcd', '.trr')
+#         files = [f for f in os.listdir(path) if f.lower().endswith(exts)]
+#         return sorted(files)
+#     except Exception as e:
+#         st.sidebar.error(f"Error accessing path: {e}")
+#         return []
 
 @st.cache_resource
-def load_trajectory(path, topo, traj):
+def load_universe_web(topo, traj):
     if topo and traj:
-        try:
-            u = mda.Universe(os.path.join(path, topo), os.path.join(path, traj))
-            return u
-        except Exception as e:
-            st.error(f"Failed to load: {e}")
+        # MDAnalysis needs file paths, so we save uploaded bytes to temp files
+        with tempfile.NamedTemporaryFile(suffix=topo.name, delete=False) as tmp_topo:
+            tmp_topo.write(topo.getvalue())
+            topo_path = tmp_topo.name
+            
+        with tempfile.NamedTemporaryFile(suffix=traj.name, delete=False) as tmp_traj:
+            tmp_traj.write(traj.getvalue())
+            traj_path = tmp_traj.name
+            
+        return mda.Universe(topo_path, traj_path)
     return None
-
-def list_files(path):
-    try:
-        # Filter for MD specific formats
-        exts = ('.xtc', '.lammpstraj', '.pdb', '.gro', '.data', '.dcd', '.trr')
-        files = [f for f in os.listdir(path) if f.lower().endswith(exts)]
-        return sorted(files)
-    except Exception as e:
-        st.sidebar.error(f"Error accessing path: {e}")
-        return []
 
 def load_traj():
 
     st.subheader("Upload Trajectory Files")
-    st.info("Please upload your topology and trajectory files to begin analysis.")
+    st.write("Please upload your topology and trajectory files to begin analysis.")
     
-    # Button to load local directory
-    if st.button("📂 Browse Directory"):
-        browse_folder()
+    # ------------------------------------tkinter based for file processing
+    # # Button to load local directory
+    # if st.button("📂 Browse Directory"):
+    #     browse_folder()
 
-    # Manual path override
-    st.session_state.current_path = st.text_input(
-        "Active path:", 
-        st.session_state.current_path
-    )
+    # # Manual path override
+    # st.session_state.current_path = st.text_input(
+    #     "Active path:", 
+    #     st.session_state.current_path
+    # )
 
-    # load files
-    files = list_files(st.session_state.current_path) 
+    # # load files
+    # files = list_files(st.session_state.current_path) 
 
-    col1, col2 = st.columns(2)
-    if files:
-        with col1:
-            # topo_file = st.file_uploader("1. Topology (PDB, GRO)", type=['pdb', 'gro'])
-            selected_topo = st.selectbox("1. Select coordinate (PDB/GRO/DATA)", files)
+    # col1, col2 = st.columns(2)
+    # if files:
+    #     with col1:
+    #         # topo_file = st.file_uploader("1. Topology (PDB, GRO)", type=['pdb', 'gro'])
+    #         selected_topo = st.selectbox("1. Select coordinate (PDB/GRO/DATA)", files)
         
-        with col2:
-            # traj_file = st.file_uploader("2. Trajectory (XTC, DCD)", type=['xtc', 'dcd'])
-            selected_traj = st.selectbox("2. Select trajectory (XTC/DCD/LAMMPSTRAJ)", files)
+    #     with col2:
+    #         # traj_file = st.file_uploader("2. Trajectory (XTC, DCD)", type=['xtc', 'dcd'])
+    #         selected_traj = st.selectbox("2. Select trajectory (XTC/DCD/LAMMPSTRAJ)", files)
 
-    else:
-        st.warning("No MD files found in this directory. Please select your directory first!")
+    # else:
+    #     st.warning("No MD files found in this directory. Please select your directory first!")
 
-    if st.button("🚀 Load System"):
-        with st.spinner("Reading MDUniverse..."):
-            # # Save to temp files as MDAnalysis requires file paths
-            # with tempfile.NamedTemporaryFile(suffix=topo_file.name, delete=False) as tmp_topo:
-            #     tmp_topo.write(topo_file.getvalue())
-            #     topo_path = tmp_topo.name
+    # if st.button("🚀 Load System"):
+    #     with st.spinner("Reading MDUniverse..."):
+    #         # # Save to temp files as MDAnalysis requires file paths
+    #         # with tempfile.NamedTemporaryFile(suffix=topo_file.name, delete=False) as tmp_topo:
+    #         #     tmp_topo.write(topo_file.getvalue())
+    #         #     topo_path = tmp_topo.name
                 
-            # with tempfile.NamedTemporaryFile(suffix=traj_file.name, delete=False) as tmp_traj:
-            #     tmp_traj.write(traj_file.getvalue())
-            #     traj_path = tmp_traj.name
+    #         # with tempfile.NamedTemporaryFile(suffix=traj_file.name, delete=False) as tmp_traj:
+    #         #     tmp_traj.write(traj_file.getvalue())
+    #         #     traj_path = tmp_traj.name
             
-            # Load and store in session state
-            u = load_trajectory(st.session_state.current_path, selected_topo, selected_traj)
-            st.session_state.u = u
-            st.success("System loaded successfully!")
+    #         # Load and store in session state
+    #         u = load_trajectory(st.session_state.current_path, selected_topo, selected_traj)
+    #         st.session_state.u = u
+    #         st.success("System loaded successfully!")
+
+    # ------------------------------------cloud
+    
+    # Toggle for Example Mode
+    use_example = st.toggle("💡 Use Example Trajectory", value=False)
+    
+    if use_example:
+        # Define relative paths to your example files
+        topo_path = "data/L30_vf60_rate10.0.data"
+        traj_path = "data/L30_vf60_rate10.0.data"
+        
+        # Check if files actually exist to prevent crashes
+        if os.path.exists(topo_path) and os.path.exists(traj_path):
+            st.info("Using pre-loaded example data: colloidal particles of high density under shear")
+            if st.button("🚀 Load Example System"):
+                st.session_state.u = mda.Universe(topo_path, traj_path)
+                st.success("Example system loaded!")
+        else:
+            st.error("Example files not found in the 'data/' directory.")
+            
+    else:
+        # Manual Upload Mode (your existing code)
+        col1, col2 = st.columns(2)
+        with col1:
+            topo_file = st.file_uploader("Upload coordinate (PDB/GRO/DATA)", type=['pdb', 'gro', 'data'])
+        with col2:
+            traj_file = st.file_uploader("Upload trajectory (XTC/DCD/GRO/DATA/LAMMPSTRAJ)", type=['xtc', 'dcd', 'gro', 'data', 'LAMMPSTRAJ'])
+            
+        if topo_file and traj_file:
+            if st.button("🚀 Load Uploaded System"):
+                # (Your existing tempfile logic here...)
+                st.session_state.u = load_universe_web(topo_file, traj_file)
 
     # Display system info if loaded
     if st.session_state.u:

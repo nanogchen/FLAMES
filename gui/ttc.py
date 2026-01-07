@@ -5,7 +5,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import sys
 sys.path.insert(0, "../")
-from fileIO import create_zip_download
+from gui.fileIO import create_zip_download
 from flames.q_gen import get_binning_averages_ttc
 from flames.calc import get_ttc
 
