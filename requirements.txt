@@ -1,0 +1,15 @@
+streamlit
+MDAnalysis
+tkinter
+fileIO
+numba
+numpy
+pandas
+plotly
+io
+zipfile
+os
+sys
+scipy
+math
+warnings
