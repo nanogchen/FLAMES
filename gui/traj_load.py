@@ -26,15 +26,15 @@ import tempfile
 #             st.error(f"Failed to load: {e}")
 #     return None
 
-# def list_files(path):
-#     try:
-#         # Filter for MD specific formats
-#         exts = ('.xtc', '.lammpstraj', '.pdb', '.gro', '.data', '.dcd', '.trr')
-#         files = [f for f in os.listdir(path) if f.lower().endswith(exts)]
-#         return sorted(files)
-#     except Exception as e:
-#         st.sidebar.error(f"Error accessing path: {e}")
-#         return []
+def list_files(path):
+    try:
+        # Filter for MD specific formats
+        exts = ('.xtc', '.lammpstraj', '.pdb', '.gro', '.data', '.dcd', '.trr')
+        files = [f for f in os.listdir(path) if f.lower().endswith(exts)]
+        return sorted(files)
+    except Exception as e:
+        st.sidebar.error(f"Error accessing path: {e}")
+        return []
 
 EXAMPLE_DIR = "data"
 def get_example_list():
@@ -117,24 +117,23 @@ def load_traj():
 
         if examples:
 
-            # # Define relative paths to your example files
-            # topo_path = "data/L30_vf60_rate10.0.data"
-            # traj_path = "data/L30_vf60_rate10.0.data"
-            # Find files (flexible for .gro/.pdb and .xtc/.dcd)
-            topo_files = [f for f in os.listdir(EXAMPLE_DIR) if f.endswith(('.gro', '.pdb', '.data'))]
-            traj_files = [f for f in os.listdir(EXAMPLE_DIR) if f.endswith(('.xtc', '.dcd', 'gro', 'data', 'LAMMPSTRAJ'))]
+            selected_example = st.selectbox("Choose a system to analyze:", examples)
+            ex_path = os.path.join(EXAMPLE_DIR, selected_example)
 
-            if topo_files and traj_files:
+            topo_file = st.selectbox("Choose coordinate (PDB/GRO/DATA) to analyze:", list_files(ex_path))
+            traj_file = st.selectbox("Choose trajectory (XTC/DCD/GRO/DATA/LAMMPSTRAJ) to analyze:", list_files(ex_path))
+
+            if topo_file and traj_file:
                 
                 if st.button("🚀 Load Example"):
-                    u = mda.Universe(os.path.join(ex_path, topo_files[0]), 
-                                     os.path.join(ex_path, traj_files[0]))
+                    u = mda.Universe(os.path.join(ex_path, topo_file), 
+                                     os.path.join(ex_path, traj_file))
                     st.session_state.u = u
-                    st.success(f"Successfully loaded {selected_example}!")
+                    st.success(f"Example files successfully loaded!")
             else:
                 st.error("Missing necessary files in this data folder.")
         else:
-            st.error("Example files not found in the 'data/' directory.")
+            st.error("Example files not found in the 'data' directory.")
 
         # # Check if files actually exist to prevent crashes
         # if os.path.exists(topo_path) and os.path.exists(traj_path):
