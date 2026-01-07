@@ -1,6 +1,7 @@
 import streamlit as st
 import numpy as np
-
+import sys
+sys.path.insert(0, "../")
 from flames.q_gen import get_q_points_all_quads,get_binning_averages
 from flames.calc import get_sf_decomposition
 

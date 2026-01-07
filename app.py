@@ -1,16 +1,16 @@
 import streamlit as st
 import MDAnalysis as mda
 import sys,os
-sys.path.insert(0, "../")
+sys.path.insert(0, ".")
 
-from traj_load import load_traj
-from init_page import init_page
-from saxs1d import saxs1d
-from saxs2d import saxs2d
-from psf import psf
-from ttc import ttc
-from isf_dsf import isf_dsf
-from g1 import g1
+from gui.traj_load import load_traj
+from gui.init_page import init_page
+from gui.saxs1d import saxs1d
+from gui.saxs2d import saxs2d
+from gui.psf import psf
+from gui.ttc import ttc
+from gui.isf_dsf import isf_dsf
+from gui.g1 import g1
 
 # ---------------------------------------------------------------------------- Page Configuration
 # ---------------------------------------------------------------------------- Page Configuration

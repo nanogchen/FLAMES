@@ -3,8 +3,9 @@ import numpy as np
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-
 from fileIO import create_zip_download
+import sys
+sys.path.insert(0, "../")
 from flames.q_gen import get_binning_averages
 from flames.calc import get_scattering_image
 
