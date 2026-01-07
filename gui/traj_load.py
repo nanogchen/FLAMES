@@ -36,6 +36,13 @@ import tempfile
 #         st.sidebar.error(f"Error accessing path: {e}")
 #         return []
 
+EXAMPLE_DIR = "data"
+def get_example_list():
+    """Returns a list of folder names inside the examples directory."""
+    if os.path.exists(EXAMPLE_DIR):
+        return [f for f in os.listdir(EXAMPLE_DIR) if os.path.isdir(os.path.join(EXAMPLE_DIR, f))]
+    return []
+
 @st.cache_resource
 def load_universe_web(topo, traj):
     if topo and traj:
@@ -102,21 +109,39 @@ def load_traj():
     # ------------------------------------cloud
     
     # Toggle for Example Mode
-    use_example = st.toggle("💡 Use Example Trajectory", value=False)
+    # use_example = st.toggle("💡 Use Example Trajectory", value=False)
+    mode = st.radio("Select Data Source:", ["Manual Upload", "Pre-loaded Examples"], horizontal=True)
     
-    if use_example:
-        # Define relative paths to your example files
-        topo_path = "data/L30_vf60_rate10.0.data"
-        traj_path = "data/L30_vf60_rate10.0.data"
-        
-        # Check if files actually exist to prevent crashes
-        if os.path.exists(topo_path) and os.path.exists(traj_path):
-            st.info("Using pre-loaded example data: colloidal particles of high density under shear")
-            if st.button("🚀 Load Example System"):
-                st.session_state.u = mda.Universe(topo_path, traj_path)
-                st.success("Example system loaded!")
+    if mode == "Pre-loaded Examples":
+        examples = get_example_list()
+
+        if examples:
+
+            # # Define relative paths to your example files
+            # topo_path = "data/L30_vf60_rate10.0.data"
+            # traj_path = "data/L30_vf60_rate10.0.data"
+            # Find files (flexible for .gro/.pdb and .xtc/.dcd)
+            topo_files = [f for f in os.listdir(EXAMPLE_DIR) if f.endswith(('.gro', '.pdb', '.data'))]
+            traj_files = [f for f in os.listdir(EXAMPLE_DIR) if f.endswith(('.xtc', '.dcd', 'gro', 'data', 'LAMMPSTRAJ'))]
+
+            if topo_files and traj_files:
+                
+                if st.button("🚀 Load Example"):
+                    u = mda.Universe(os.path.join(ex_path, topo_files[0]), 
+                                     os.path.join(ex_path, traj_files[0]))
+                    st.session_state.u = u
+                    st.success(f"Successfully loaded {selected_example}!")
+            else:
+                st.error("Missing necessary files in this data folder.")
         else:
             st.error("Example files not found in the 'data/' directory.")
+
+        # # Check if files actually exist to prevent crashes
+        # if os.path.exists(topo_path) and os.path.exists(traj_path):
+        #     st.info("Using pre-loaded example data: colloidal particles of high density under shear")
+        #     if st.button("🚀 Load Example System"):
+        #         st.session_state.u = mda.Universe(topo_path, traj_path)
+        #         st.success("Example system loaded!")        
             
     else:
         # Manual Upload Mode (your existing code)
