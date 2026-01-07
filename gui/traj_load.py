@@ -120,8 +120,11 @@ def load_traj():
             selected_example = st.selectbox("Choose a system to analyze:", examples)
             ex_path = os.path.join(EXAMPLE_DIR, selected_example)
 
-            topo_file = st.selectbox("Choose coordinate (PDB/GRO/DATA) to analyze:", list_files(ex_path))
-            traj_file = st.selectbox("Choose trajectory (XTC/DCD/GRO/DATA/LAMMPSTRAJ) to analyze:", list_files(ex_path))
+            col1,col2 = st.columns(2)
+            with col1:
+                topo_file = st.selectbox("Choose coordinate (PDB/GRO/DATA) to analyze:", list_files(ex_path))
+            with col2:
+                traj_file = st.selectbox("Choose trajectory (XTC/DCD/GRO/DATA/LAMMPSTRAJ) to analyze:", list_files(ex_path))
 
             if topo_file and traj_file:
                 
