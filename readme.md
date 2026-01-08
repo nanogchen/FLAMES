@@ -13,17 +13,15 @@ Types of work can be done*:
 *Not all added yet. Will keep updating once new research is published.
 
 ## Prerequisites
-Main packages used:
-- [MDAnalysis](https://www.mdanalysis.org/) file IO (tested v2.4.3)
-- [numba](https://numba.pydata.org/) accelerated array processing (tested v0.51.2)
-- [scipy](https://scipy.org/) autocorrelation function calculation (tested 1.8.1)
-- [numpy](https://numpy.org/) array processing (tested 1.22.4)
-
-Packages used with modification (no need to install):
-- [dynasor](https://dynasor.materialsmodeling.org/) q-points generation and density calculation
+Main packages used are included in the requirements.txt file.
 
 ## How to use
-Set the control parameters and run the script under the environment with above packages:
+First and foremost, change into the python environment with above packages. 
+### GUI version
+> streamlit run app.py
+
+### Reproduce the FLAMES paper
+Set the control parameters and run the script:
 > cd tests/
 > 
 > python jctc25_test.py
