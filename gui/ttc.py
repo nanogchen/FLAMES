@@ -46,7 +46,7 @@ def ttc(u):
     system = u.select_atoms(ag_str)
     formfact_all = np.array([1.0 for _ in range(system.atoms.n_atoms)])
     q_points_bin, ssf, I_q_t1_t2 = get_ttc(np.array([bx, by, bz]), q_i-0.5*dq, q_i+0.5*dq, Nbins, angle_deg,
-                            system, u.trajectory[Fr_start:Fr_end+1:Fr_step], 
+                            system, u.trajectory[Fr_start:Fr_end:Fr_step], 
                             formfact_all, st.session_state.input['ttc_2d_plane'])
 
     # do q-average

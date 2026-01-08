@@ -36,7 +36,7 @@ def saxs2d(u):
     # if st.button("Calculate SAXS-2D"): 
     system = u.select_atoms(ag_str)         
     q_points, ssf_1d, qpts1, qpts2, ssf_2d = get_scattering_image(np.array([bx, by, bz]), q_max, system, 
-                                                                u.trajectory[Fr_start:Fr_end+1:Fr_step], 
+                                                                u.trajectory[Fr_start:Fr_end:Fr_step], 
                                                                 plane=st.session_state.input['saxs_2d_plane'])
     
     num_q_bins = int(q_max/round(2*np.pi/L, 2))

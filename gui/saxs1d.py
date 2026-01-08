@@ -20,7 +20,7 @@ def saxs1d(u):
     ag_str = st.text_input("system", value="all", help="MDAnalysis atoms selection")
     system = u.select_atoms(ag_str)
     formfact_all = np.array([1.0 for _ in range(system.atoms.n_atoms)])
-    ssf = get_static_sf(q_points, system, u.trajectory[Fr_start:Fr_end+1:Fr_step], formfact_all)
+    ssf = get_static_sf(q_points, system, u.trajectory[Fr_start:Fr_end:Fr_step], formfact_all)
 
     num_q_bins = int(st.session_state.input["q_end"]/round(st.session_state.input["dq_values"], 2))
     qr, ssf_qr = get_binning_averages(num_q_bins, q_end, ssf, q_points)

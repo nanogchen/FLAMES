@@ -36,7 +36,7 @@ def psf(u):
             q_points = st.session_state.q_values
             system = u.select_atoms("all")
             formfact_all = np.array([1.0 for _ in range(system.atoms.n_atoms)])
-            sf_AA, sf_AB, sf_BB = get_sf_decomposition(q_points,ag1,ag2,u.trajectory[Fr_start:Fr_end+1:Fr_step])
+            sf_AA, sf_AB, sf_BB = get_sf_decomposition(q_points,ag1,ag2,u.trajectory[Fr_start:Fr_end:Fr_step])
 
             num_q_bins = int(q_end/round(st.session_state.input["dq_values"], 2))
             qr, ssf_AA_qr = get_binning_averages(num_q_bins, q_end, sf_AA, q_points)
