@@ -44,7 +44,7 @@ def get_example_list():
     return []
 
 @st.cache_resource
-def load_universe_web(topo, traj):
+def load_universe_web(topo, traj, atom_style_str):
     if topo and traj:
         # MDAnalysis needs file paths, so we save uploaded bytes to temp files
         with tempfile.NamedTemporaryFile(suffix=topo.name, delete=False) as tmp_topo:
@@ -54,8 +54,11 @@ def load_universe_web(topo, traj):
         with tempfile.NamedTemporaryFile(suffix=traj.name, delete=False) as tmp_traj:
             tmp_traj.write(traj.getvalue())
             traj_path = tmp_traj.name
-            
-        return mda.Universe(topo_path, traj_path)
+        
+        if atom_style_str is not None:
+            return mda.Universe(topo_path, traj_path, atom_style = atom_style_str, format='LAMMPSDUMP')
+        else:
+            return mda.Universe(topo_path, traj_path)
     return None
 
 def load_traj():
@@ -90,22 +93,6 @@ def load_traj():
     # else:
     #     st.warning("No MD files found in this directory. Please select your directory first!")
 
-    # if st.button("🚀 Load System"):
-    #     with st.spinner("Reading MDUniverse..."):
-    #         # # Save to temp files as MDAnalysis requires file paths
-    #         # with tempfile.NamedTemporaryFile(suffix=topo_file.name, delete=False) as tmp_topo:
-    #         #     tmp_topo.write(topo_file.getvalue())
-    #         #     topo_path = tmp_topo.name
-                
-    #         # with tempfile.NamedTemporaryFile(suffix=traj_file.name, delete=False) as tmp_traj:
-    #         #     tmp_traj.write(traj_file.getvalue())
-    #         #     traj_path = tmp_traj.name
-            
-    #         # Load and store in session state
-    #         u = load_trajectory(st.session_state.current_path, selected_topo, selected_traj)
-    #         st.session_state.u = u
-    #         st.success("System loaded successfully!")
-
     # ------------------------------------cloud
     
     # Toggle for Example Mode
@@ -128,22 +115,13 @@ def load_traj():
 
             if topo_file and traj_file:
                 
-                if st.button("🚀 Load Example"):
-                    u = mda.Universe(os.path.join(ex_path, topo_file), 
-                                     os.path.join(ex_path, traj_file))
+                if st.button("🚀 Load Example"):                    
                     st.session_state.u = u
                     st.success(f"Example files successfully loaded!")
             else:
                 st.error("Missing necessary files in this data folder.")
         else:
             st.error("Example files not found in the 'data' directory.")
-
-        # # Check if files actually exist to prevent crashes
-        # if os.path.exists(topo_path) and os.path.exists(traj_path):
-        #     st.info("Using pre-loaded example data: colloidal particles of high density under shear")
-        #     if st.button("🚀 Load Example System"):
-        #         st.session_state.u = mda.Universe(topo_path, traj_path)
-        #         st.success("Example system loaded!")        
             
     else:
         # Manual Upload Mode (your existing code)
@@ -151,12 +129,17 @@ def load_traj():
         with col1:
             topo_file = st.file_uploader("Upload coordinate (PDB/GRO/DATA)", type=['pdb', 'gro', 'data'])
         with col2:
-            traj_file = st.file_uploader("Upload trajectory (XTC/DCD/GRO/DATA/LAMMPSTRAJ)", type=['xtc', 'dcd', 'gro', 'data', 'LAMMPSTRAJ'])
-            
+            traj_file = st.file_uploader("Upload trajectory (XTC/DCD/GRO/DATA/LAMMPSTRAJ)", type=['xtc', 'dcd', 'gro', 'data', 'lammpstraj', '.dump', '.lammps'])
+        
         if topo_file and traj_file:
-            if st.button("🚀 Load Uploaded System"):
+            if traj_file.name.lower().endswith('lammpstraj') or traj_file.name.lower().endswith('.dump') or traj_file.name.lower().endswith('.lammps'):
+                atom_style_str = st.text_input("Atom style for LAMMPS dump file", value="id type x y z", help="LAMMPS dump file format")
+            else:
+                atom_style_str = None
+
+            if st.button("🚀 Load System"):
                 # (Your existing tempfile logic here...)
-                st.session_state.u = load_universe_web(topo_file, traj_file)
+                st.session_state.u = load_universe_web(topo_file, traj_file, atom_style_str)
 
     # Display system info if loaded
     if st.session_state.u:
