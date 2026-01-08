@@ -115,7 +115,9 @@ def load_traj():
 
             if topo_file and traj_file:
                 
-                if st.button("🚀 Load Example"):                    
+                if st.button("🚀 Load Example"):
+                    u = mda.Universe(os.path.join(ex_path, topo_file), 
+                                     os.path.join(ex_path, traj_file))
                     st.session_state.u = u
                     st.success(f"Example files successfully loaded!")
             else:
