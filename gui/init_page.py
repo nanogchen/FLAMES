@@ -13,7 +13,7 @@ def init_page(u):
         st.session_state.input['length_unit'] = st.radio("Choose length unit:", ["real", "LJ"], horizontal=True)
         # q_start = st.number_input("q_start (Å⁻¹)", value=0.00, min_value=0.0, step=0.01, format="%.2f")
         L = max(u.dimensions[:3])
-        q_end = st.number_input("Max wavenumber q (Å⁻¹ or $\\sigma$)", value=1.00, min_value=float(2*np.pi/L), step=0.01, format="%.2f")
+        q_end = st.number_input("Max wavenumber q (Å⁻¹ or $\\sigma$⁻¹)", value=1.00, min_value=float(2*np.pi/L), step=0.01, format="%.2f")
         max_q_points = st.number_input("Max number of q-points", value=1000, min_value=1000, step=100)
         
         # save input
