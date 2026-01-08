@@ -1,2 +1,9 @@
 [server]
 maxUploadSize = 5000 # Increases limit to 5GB
+
+# [theme]
+# primaryColor = "#00d4ff"
+# backgroundColor = "#0e1117"
+# secondaryBackgroundColor = "#161b22"
+# textColor = "#fafafa"
+# font = "sans serif"
