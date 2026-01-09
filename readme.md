@@ -13,7 +13,10 @@ Types of work can be done*:
 *Not all added yet. Will keep updating once new research is published.
 
 ## Prerequisites
-Main packages used are included in the requirements.txt file.
+Main packages used are included in the requirements.txt file and can be installed by one of the following ways:
+> (myenv) conda install --file requirements.txt
+> 
+> (myenv) pip install -r requirements.txt
 
 ## How to use
 First and foremost, change into the python environment with above packages. 
