@@ -114,10 +114,23 @@ def load_traj():
                 traj_file = st.selectbox("Choose trajectory (XTC/DCD/GRO/DATA/LAMMPSTRAJ) to analyze:", list_files(ex_path))
 
             if topo_file and traj_file:
+
+                if traj_file.lower().endswith('lammpstraj') or traj_file.lower().endswith('.dump') or traj_file.lower().endswith('.lammps'):
+                    atom_style_str = st.text_input("Atom style for LAMMPS dump file", value="id type x y z", help="LAMMPS dump file format")
+                    
+                else:
+                    atom_style_str = None
                 
+                st.session_state.input['topo_file'] = topo_file
+                st.session_state.input['traj_file'] = traj_file
                 if st.button("🚀 Load Example"):
-                    u = mda.Universe(os.path.join(ex_path, topo_file), 
-                                     os.path.join(ex_path, traj_file))
+                    if atom_style_str is not None:
+                        u = mda.Universe(os.path.join(ex_path, topo_file), 
+                                         os.path.join(ex_path, traj_file),
+                                         atom_style = atom_style_str, format='LAMMPSDUMP')
+                    else:
+                        u = mda.Universe(os.path.join(ex_path, topo_file), 
+                                         os.path.join(ex_path, traj_file))
                     st.session_state.u = u
                     st.success(f"Example files successfully loaded!")
             else:
@@ -139,6 +152,9 @@ def load_traj():
             else:
                 atom_style_str = None
 
+            st.session_state.input['topo_file'] = topo_file.name.lower()
+            st.session_state.input['traj_file'] = traj_file.name.lower()
+            st.session_state.input['atom_style'] = atom_style_str
             if st.button("🚀 Load System"):
                 # (Your existing tempfile logic here...)
                 st.session_state.u = load_universe_web(topo_file, traj_file, atom_style_str)
@@ -166,6 +182,12 @@ def load_traj():
             st.write("Atom Names")
             st.info(", ".join(unique_names))
 
+        if hasattr(u.atoms, 'types'):
+            unique_names = np.unique(u.atoms.types)
+
+            st.write("Atom Types")
+            st.info(", ".join(unique_names))
+
         if hasattr(u.atoms, 'resnames'):
             unique_resnames = np.unique(u.atoms.resnames) 
 
@@ -179,8 +201,12 @@ def load_traj():
 u.select_atoms(\"index 0:5\")\n
 # Select atoms by id (inclusive, 1-based)
 u.select_atoms(\"id 1:5\")\n
-# Select atoms by index range
-u.select_atoms(\"prop index < 5\")''')
+# Select atoms by property range
+u.select_atoms(\"prop index < 5\")\n
+# Select atoms by type
+u.select_atoms(\"type 1\")\n
+# Select atoms by residue name
+u.select_atoms(\"resname DDP\")''')
 
 
                     

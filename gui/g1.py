@@ -44,7 +44,8 @@ def g1(u):
     with col2:
         ag_str = st.text_input(
             "Select system of interest", 
-            value=f"index 0:{len(u.atoms)//2}", 
+            # value=f"index 0:{len(u.atoms)//2}", 
+            value=f"all", 
             help="MDAnalysis atom group selection",
             key='g1_ag'
             )

@@ -34,7 +34,8 @@ def isf_dsf(u):
         st.write(f"Start: {q_range[0]} | End: {q_range[1]}")
     with col2:
         ag_str = st.text_input("Select system of interest", 
-            value=f"index 0:{len(u.atoms)//2}", 
+            # value=f"index 0:{len(u.atoms)//2}", 
+            value=f"all", 
             help="MDAnalysis atom group selection",
             key="isf_dsf_ag"
         )

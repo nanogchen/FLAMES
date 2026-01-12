@@ -1,6 +1,6 @@
 import streamlit as st
 import numpy as np
-import sys
+import sys,json
 sys.path.insert(0, "../")
 from flames.q_gen import get_q_points_all_quads,get_binning_averages
 from flames.calc import get_sf_decomposition
@@ -25,7 +25,7 @@ def init_page(u):
             
             # get box info
             bx, by, bz = u.dimensions[:3]
-            st.session_state.input['Box Array'] = np.array([bx, by, bz])
+            # st.session_state.input['Box Array'] = np.array([bx, by, bz])
 
             q_points = get_q_points_all_quads(np.array([bx, by, bz]), q_end, max_points=max_q_points)
             st.session_state.q_values = q_points
@@ -39,7 +39,7 @@ def init_page(u):
         frame_start = st.number_input("Frame start", value=0, min_value=0, step=1)
         frame_end = st.number_input("Frame end",     value=1, min_value=frame_start, max_value=max(len(u.trajectory)-1, 1),step=1)
         frame_step = st.number_input("Frame step",   value=10, min_value=1, step=1)
-        traj_dt = st.number_input("Traj dt (ps)", value=1.00, step=0.001, min_value=0.001, format="%.3f")
+        traj_dt = st.number_input("Traj dt (ps or τ)", value=1.00, step=0.001, min_value=0.001, format="%.3f")
 
         st.session_state.input['frame_start'] = frame_start
         st.session_state.input['frame_end'] = frame_end
@@ -63,4 +63,15 @@ def init_page(u):
             st.session_state.selected_tasks = tasks
             st.success("Pipeline Initialized!")
 
+            # # save input to file
+            # # Convert the dict to a JSON-formatted string
+            # json_string = json.dumps(st.session_state.input, indent=4)
+            # st.download_button(
+            #     label="Download input as JSON",
+            #     data=json_string,
+            #     file_name="input.json",
+            #     mime="application/json"
+            # )
+        
         st.text("SAXS: small angle X-ray scattering\nPSF: partial structure factor\nISF: intermediate scattering function\nIXS: inelastic X-ray scattering\nTTC: two-time correlation")
+
