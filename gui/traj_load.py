@@ -97,9 +97,9 @@ def load_traj():
     
     # Toggle for Example Mode
     # use_example = st.toggle("💡 Use Example Trajectory", value=False)
-    mode = st.radio("Select Data Source:", ["Manual Upload", "Pre-loaded Examples"], horizontal=True)
+    mode = st.radio("Select Data Source:", ["Manual Upload", "Pre-installed Examples"], horizontal=True)
     
-    if mode == "Pre-loaded Examples":
+    if mode == "Pre-installed Examples":
         examples = get_example_list()
 
         if examples:

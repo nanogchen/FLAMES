@@ -72,7 +72,7 @@ draw_sidebar_footer()
 
 # ---------------------------------------------------------------------------- Main Dashboard
 # ---------------------------------------------------------------------------- Main Dashboard
-st.title("🔬 The Digital Twin for Molecular Scattering")
+st.title("🔬 A Digital Twin for Molecular Scattering")
     
 # Analysis Tabs
 tabtraj, tabinit, tab1d, tabpsf, tab2d, tabg1, tabisfdsf, tabttc = st.tabs([

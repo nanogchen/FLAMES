@@ -45,3 +45,7 @@ def saxs1d(u):
         mime="text/csv",
     )
     st.plotly_chart(fig_saxs, width='content')
+
+    # if st.button("Lorentzian fit"):
+    #     fit_params = []
+
