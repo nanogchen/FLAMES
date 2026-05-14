@@ -28,6 +28,7 @@ Set the control parameters and run the script:
 > cd tests/
 > 
 > python jctc25_test.py
+> python jpcl26_test.py
 
 Note that the current test is on the Gromacs xtc trajectory (e.g., time and length unit in ps and nm). For other types of trajectories, especially saved in xtc format with LJ units, the unit conversion must be done correctly!
 
