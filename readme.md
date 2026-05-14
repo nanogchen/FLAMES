@@ -25,8 +25,9 @@ First and foremost, change into the python environment with above packages.
 Set the control parameters and run the script:
 > cd tests/
 ```python
+# FLAMES 
 python jctc25_test.py
-# or another test
+# another test
 python jpcl26_test.py
 ```
 
