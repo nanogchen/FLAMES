@@ -26,9 +26,11 @@ First and foremost, change into the python environment with above packages.
 ### Reproduce the FLAMES paper
 Set the control parameters and run the script:
 > cd tests/
-> 
-> python jctc25_test.py
-> python jpcl26_test.py
+```python
+python jctc25_test.py
+# or another test
+python jpcl26_test.py
+```
 
 Note that the current test is on the Gromacs xtc trajectory (e.g., time and length unit in ps and nm). For other types of trajectories, especially saved in xtc format with LJ units, the unit conversion must be done correctly!
 
