@@ -18,8 +18,6 @@ Main packages used are included in the requirements.txt file and can be installe
 
 ## How to use
 First and foremost, change into the python environment with above packages. 
-### GUI version
-> streamlit run app.py
 
 ### Reproduce the FLAMES paper
 Set the control parameters and run the script:
