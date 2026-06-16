@@ -34,3 +34,5 @@ Note that the current test is on the Gromacs xtc trajectory (e.g., time and leng
 ## How to cite
 [JCTC25]: G. Chen, S. Narayanan, G. B. Stephenson, M. J. Servis, S. K.R.S. Sankaranarayanan. "FLAMES—Fast, Low-storage, Accurate, and Memory-Efficient adaptive Sampling—Approach to Resolve Spatially Dependent Dynamics of Molecular Liquids". Journal of Chemical Theory and Computation 21.18 (2025): 8661-8668. https://doi.org/10.1021/acs.jctc.5c00553
 
+[JPCL2026]: G. Chen, S. Narayanan, G. B. Stephenson, M. J. Servis, S. K.R.S. Sankaranarayanan. "Long-Range Dispersion Governs the Behavior of Near-Critical Fluids: Universal Scaling and Implications for Accurate Molecular Simulation". The Journal of Physical Chemistry Letters (2026). https://doi.org/10.1021/acs.jpclett.6c01114
+
